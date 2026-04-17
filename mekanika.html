@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Mekanika – SimFisika</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #050a1a;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, .4);
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 1px;
+            transition: color .2s;
+        }
+
+        header a:hover {
+            color: #00d4ff;
+        }
+
+        header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, .2);
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            color: #64748b;
+            background: transparent;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            background: rgba(0, 212, 255, .15);
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(255, 255, 255, .05);
+            color: #94a3b8;
+        }
+
+        .lab {
+            display: none;
+            padding: 24px;
+            gap: 20px;
+            flex-direction: column;
+        }
+
+        .lab.active {
+            display: flex;
+        }
+
+        .sim-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            align-items: stretch;
+            height: calc(100vh - 140px);
+            min-height: 500px;
+        }
+
+        @media(max-width:768px) {
+            .sim-wrapper {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        .canvas-box {
+            background: #050a1a;
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            color: #00d4ff;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-size: 11px;
+            color: #94a3b8;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: #00d4ff;
+            cursor: pointer;
+        }
+
+        .val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: #e2e8f0;
+            float: right;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+        }
+
+        .data-row span:first-child {
+            color: #64748b;
+        }
+
+        .data-row span:last-child {
+            font-family: 'Orbitron', sans-serif;
+            color: #00d4ff;
+            font-size: 11px;
+        }
+
+        btn,
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            transition: all .2s;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            color: #050a1a;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, .08);
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, .12);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .info-box {
+            background: rgba(0, 212, 255, .05);
+            border: 1px solid rgba(0, 212, 255, .2);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #94a3b8;
+        }
+
+        .info-box strong {
+            color: #00d4ff;
+        }
+
+        .formula {
+            background: rgba(124, 58, 237, .1);
+            border: 1px solid rgba(124, 58, 237, .3);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            color: #a78bfa;
+            margin: 8px 0;
+        }
+
+        /* Fullscreen */
+        #fsBtn {
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .15);
+            color: #94a3b8;
+            border-radius: 8px;
+            padding: 5px 12px;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            transition: all .2s;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        #fsBtn:hover {
+            background: rgba(255, 255, 255, .18);
+            color: #e2e8f0;
+        }
+
+        :fullscreen #fsBtn,
+        :-webkit-full-screen #fsBtn {
+            color: #00d4ff;
+            border-color: #00d4ff;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <a href="index.html">← MENU</a>
+            <h1>🚀 MEKANIKA</h1>
+            <span style="color:#334155;font-size:11px;">LAB INTERAKTIF FISIKA</span>
+            <button id="fsBtn" onclick="toggleFS()" title="Layar Penuh">⛶</button>
+        </header>
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('glb')">GLB & GLBB</div>
+            <div class="tab" onclick="switchTab('newton')">Hukum Newton</div>
+            <div class="tab" onclick="switchTab('projectile')">Gerak Proyektil</div>
+            <div class="tab" onclick="switchTab('bridge')">Rekayasa Struktur</div>
+        </div>
+
+        <!-- TAB 1: GLB & GLBB -->
+        <div id="tab-glb" class="lab active">
+            <div class="sim-wrapper">
+                <div class="canvas-box" id="box-glb"></div>
+                <div class="panel">
+                    <div class="card">
+                        <h3>KONTROL SIMULASI</h3>
+                        <label>Kecepatan Awal (v₀) <span class="val" id="v0val">5</span> m/s</label>
+                        <input type="range" id="v0" min="1" max="20" value="5" step="0.5" />
+                        <label style="margin-top:10px">Percepatan (a) <span class="val" id="aval">2</span> m/s²</label>
+                        <input type="range" id="acc" min="-5" max="10" value="2" step="0.5" />
+                        <label style="margin-top:10px">Mode</label>
+                        <select id="glbMode"
+                            style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:6px;font-size:12px;">
+                            <option value="glb">GLB (a = 0)</option>
+                            <option value="glbb" selected>GLBB (a ≠ 0)</option>
+                        </select>
+                        <div class="btn-row" style="margin-top:12px">
+                            <button class="btn btn-primary" onclick="glbStart()">▶ MULAI</button>
+                            <button class="btn btn-secondary" onclick="glbReset()">↺ RESET</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>DATA REAL-TIME</h3>
+                        <div class="data-row"><span>Waktu (t)</span><span id="d-t">0.00 s</span></div>
+                        <div class="data-row"><span>Posisi (x)</span><span id="d-x">0.00 m</span></div>
+                        <div class="data-row"><span>Kecepatan (v)</span><span id="d-v">0.00 m/s</span></div>
+                        <div class="data-row"><span>Percepatan (a)</span><span id="d-a">0.00 m/s²</span></div>
+                    </div>
+                    <div class="card">
+                        <h3>RUMUS</h3>
+                        <div class="formula">v = v₀ + at</div>
+                        <div class="formula">x = v₀t + ½at²</div>
+                        <div class="formula">v² = v₀² + 2ax</div>
+                        <div class="info-box"><strong>GLB:</strong> Kecepatan tetap, percepatan =
+                            0<br /><strong>GLBB:</strong> Percepatan konstan, kecepatan berubah seragam</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Newton -->
+        <div id="tab-newton" class="lab">
+            <div class="sim-wrapper">
+                <div class="canvas-box" id="box-newton"></div>
+                <div class="panel">
+                    <div class="card">
+                        <h3>HUKUM YANG DIPILIH</h3>
+                        <div style="display:flex;flex-direction:column;gap:6px;">
+                            <button class="btn btn-primary" id="n1btn" onclick="setNewton(1)">Hukum I – Inersia</button>
+                            <button class="btn btn-secondary" id="n2btn" onclick="setNewton(2)">Hukum II – F =
+                                ma</button>
+                            <button class="btn btn-secondary" id="n3btn" onclick="setNewton(3)">Hukum III –
+                                Aksi-Reaksi</button>
+                        </div>
+                    </div>
+                    <div class="card" id="newton-ctrl">
+                        <h3>KONTROL</h3>
+                        <div id="n1-ctrl">
+                            <div class="info-box">Benda diam tetap diam, benda bergerak tetap bergerak kecuali ada gaya.
+                            </div>
+                            <label style="margin-top:10px">Gaya Gesek <span class="val" id="fricval">0</span></label>
+                            <input type="range" id="fric" min="0" max="10" value="0" step="1" />
+                            <div class="btn-row" style="margin-top:10px">
+                                <button class="btn btn-primary" onclick="newtonStart()">▶ DORONG</button>
+                                <button class="btn btn-secondary" onclick="newtonReset()">↺ RESET</button>
+                            </div>
+                        </div>
+                        <div id="n2-ctrl" style="display:none">
+                            <label>Massa (m) <span class="val" id="massval">5</span> kg</label>
+                            <input type="range" id="mass" min="1" max="20" value="5" step="1" />
+                            <label style="margin-top:8px">Gaya (F) <span class="val" id="forceval">10</span> N</label>
+                            <input type="range" id="force" min="1" max="50" value="10" step="1" />
+                            <div class="formula">a = F / m = <span id="fma-result">2.00</span> m/s²</div>
+                            <div class="btn-row">
+                                <button class="btn btn-primary" onclick="newtonStart()">▶ TERAPKAN</button>
+                                <button class="btn btn-secondary" onclick="newtonReset()">↺ RESET</button>
+                            </div>
+                        </div>
+                        <div id="n3-ctrl" style="display:none">
+                            <div class="info-box">Setiap aksi menghasilkan reaksi yang sama besar dan berlawanan arah.
+                            </div>
+                            <div class="btn-row" style="margin-top:10px">
+                                <button class="btn btn-primary" onclick="newtonStart()">▶ TUMBUKAN</button>
+                                <button class="btn btn-secondary" onclick="newtonReset()">↺ RESET</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>DATA</h3>
+                        <div class="data-row"><span>Gaya (F)</span><span id="n-f">0 N</span></div>
+                        <div class="data-row"><span>Massa (m)</span><span id="n-m">0 kg</span></div>
+                        <div class="data-row"><span>Percepatan (a)</span><span id="n-a">0 m/s²</span></div>
+                        <div class="data-row"><span>Kecepatan (v)</span><span id="n-v">0 m/s</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Projectile -->
+        <div id="tab-projectile" class="lab">
+            <div class="sim-wrapper">
+                <div class="canvas-box" id="box-proj"></div>
+                <div class="panel">
+                    <div class="card">
+                        <h3>PARAMETER</h3>
+                        <label>Kecepatan Awal (v₀) <span class="val" id="pv0val">20</span> m/s</label>
+                        <input type="range" id="pv0" min="5" max="50" value="20" step="1" />
+                        <label style="margin-top:8px">Sudut (θ) <span class="val" id="pangval">45</span>°</label>
+                        <input type="range" id="pang" min="5" max="85" value="45" step="1" />
+                        <label style="margin-top:8px">Gravitasi (g) <span class="val" id="pgval">9.8</span> m/s²</label>
+                        <input type="range" id="pg" min="1.6" max="20" value="9.8" step="0.1" />
+                        <div class="btn-row" style="margin-top:12px">
+                            <button class="btn btn-primary" onclick="projStart()">🚀 LEMPAR</button>
+                            <button class="btn btn-secondary" onclick="projReset()">↺ RESET</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>HASIL ANALISIS</h3>
+                        <div class="data-row"><span>Jangkauan Max</span><span id="p-range">0 m</span></div>
+                        <div class="data-row"><span>Ketinggian Max</span><span id="p-hmax">0 m</span></div>
+                        <div class="data-row"><span>Waktu Terbang</span><span id="p-time">0 s</span></div>
+                        <div class="data-row"><span>vₓ</span><span id="p-vx">0 m/s</span></div>
+                        <div class="data-row"><span>vᵧ</span><span id="p-vy">0 m/s</span></div>
+                    </div>
+                    <div class="card">
+                        <h3>RUMUS</h3>
+                        <div class="formula">x = v₀cosθ · t</div>
+                        <div class="formula">y = v₀sinθ·t − ½gt²</div>
+                        <div class="formula">R = v₀²sin2θ / g</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: Bridge -->
+        <div id="tab-bridge" class="lab">
+            <div class="sim-wrapper">
+                <div class="canvas-box" id="box-bridge"></div>
+                <div class="panel">
+                    <div class="card">
+                        <h3>REKAYASA JEMBATAN</h3>
+                        <label>Tipe Jembatan</label>
+                        <select id="bridgeType"
+                            style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:6px;font-size:12px;">
+                            <option value="beam">Beam Bridge</option>
+                            <option value="arch">Arch Bridge</option>
+                            <option value="truss">Truss Bridge</option>
+                            <option value="suspension">Suspension Bridge</option>
+                        </select>
+                        <label style="margin-top:10px">Beban (ton) <span class="val" id="bloadval">5</span></label>
+                        <input type="range" id="bload" min="1" max="20" value="5" step="1" />
+                        <div class="btn-row" style="margin-top:10px">
+                            <button class="btn btn-primary" onclick="bridgeSimulate()">⚙ SIMULASI</button>
+                            <button class="btn btn-secondary" onclick="bridgeReset()">↺ RESET</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>ANALISIS GAYA</h3>
+                        <div class="data-row"><span>Gaya Berat (W)</span><span id="b-w">0 kN</span></div>
+                        <div class="data-row"><span>Gaya Normal (N)</span><span id="b-n">0 kN</span></div>
+                        <div class="data-row"><span>Tegangan</span><span id="b-stress">0 MPa</span></div>
+                        <div class="data-row"><span>Status</span><span id="b-status" style="color:#22c55e">AMAN</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>KONSEP</h3>
+                        <div class="info-box">
+                            <strong>Distribusi Gaya</strong><br />
+                            Setiap jenis jembatan mendistribusikan gaya secara berbeda.<br /><br />
+                            <strong>Hukum Newton III</strong><br />
+                            Beban → reaksi tumpuan menjaga keseimbangan struktur.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ─── TAB SWITCHING ────────────────────────────────────────
+        function switchTab(id) {
+            document.querySelectorAll('.lab').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + id).classList.add('active');
+            event.target.classList.add('active');
+            if (id === 'glb') initGLB();
+            if (id === 'newton') initNewton();
+            if (id === 'projectile') initProj();
+            if (id === 'bridge') initBridge();
+        }
+
+        // ─── HELPERS ─────────────────────────────────────────────
+        const setupSlider = (id, displayId, suffix = '', cb = null) => {
+            const sl = document.getElementById(id);
+            const dp = document.getElementById(displayId);
+            if (!sl || !dp) return;
+            dp.textContent = sl.value + suffix;
+            sl.addEventListener('input', () => { dp.textContent = sl.value + suffix; if (cb) cb(); });
+        };
+
+        // ═══════════════════════════════════════════════
+        // TAB 1: GLB / GLBB
+        // ═══════════════════════════════════════════════
+        let skGLB = null, glbRunning = false, glbT = 0, glbX = 0, glbV = 0, glbTrail = [];
+        function initGLB() {
+            if (skGLB) skGLB.remove();
+            glbRunning = false; glbT = 0; glbX = 0; glbTrail = [];
+            setupSlider('v0', 'v0val', ' m/s');
+            setupSlider('acc', 'aval', ' m/s²');
+            document.getElementById('glbMode').addEventListener('change', e => {
+                const fixed = e.target.value === 'glb';
+                document.getElementById('acc').disabled = fixed;
+                if (fixed) { document.getElementById('acc').value = 0; document.getElementById('aval').textContent = '0 m/s²'; }
+            });
+            skGLB = new p5(sk => {
+                sk.setup = () => { let c = sk.createCanvas(sk.windowWidth > 900 ? 560 : document.getElementById('box-glb').offsetWidth || 500, 360); c.parent('box-glb'); };
+                sk.draw = () => {
+                    sk.background(5, 10, 26);
+                    const W = sk.width, H = sk.height, ground = H - 60;
+                    // Ground & sky
+                    sk.stroke(30, 50, 80); sk.strokeWeight(1);
+                    for (let i = 0; i < W; i += 40) { sk.line(i, 0, i, H); }
+                    sk.noStroke(); sk.fill(15, 30, 60);
+                    sk.rect(0, ground, W, 60);
+                    // Road markings
+                    sk.stroke(255, 200, 0, 80); sk.strokeWeight(2); sk.setLineDash([20, 15]);
+                    sk.line(0, ground + 30, W, ground + 30); sk.setLineDash([]);
+                    // Trail
+                    sk.noStroke();
+                    for (let i = 0; i < glbTrail.length; i++) {
+                        let alpha = sk.map(i, 0, glbTrail.length, 0, 120);
+                        sk.fill(0, 212, 255, alpha); sk.ellipse(glbTrail[i], ground - 22, 6, 6);
+                    }
+                    // Car body
+                    let carX = sk.map(glbX, 0, 200, 60, W - 60);
+                    carX = sk.constrain(carX, 60, W - 60);
+                    // Shadow
+                    sk.fill(0, 0, 0, 60); sk.ellipse(carX, ground + 4, 80, 12);
+                    // Body
+                    sk.fill(30, 120, 200); sk.rect(carX - 36, ground - 48, 72, 28, 8);
+                    sk.fill(20, 80, 150); sk.rect(carX - 28, ground - 64, 56, 20, 6);
+                    // Windows
+                    sk.fill(150, 220, 255, 180); sk.rect(carX - 22, ground - 62, 18, 16, 3); sk.rect(carX + 2, ground - 62, 18, 16, 3);
+                    // Wheels
+                    sk.fill(40); sk.stroke(80); sk.strokeWeight(2);
+                    sk.ellipse(carX - 22, ground - 8, 22, 22); sk.ellipse(carX + 22, ground - 8, 22, 22);
+                    sk.fill(100); sk.noStroke();
+                    sk.ellipse(carX - 22, ground - 8, 10, 10); sk.ellipse(carX + 22, ground - 8, 10, 10);
+                    // Velocity arrow
+                    let vNorm = glbV / 20;
+                    if (Math.abs(glbV) > 0.1) {
+                        let ax = vNorm > 0 ? 1 : -1;
+                        sk.stroke(vNorm > 0 ? '#00ff88' : '#ff4444'); sk.strokeWeight(3);
+                        sk.fill(vNorm > 0 ? '#00ff88' : '#ff4444');
+                        sk.line(carX, ground - 80, carX + ax * 50 * Math.min(Math.abs(vNorm), 1), ground - 80);
+                        sk.triangle(carX + ax * 50 * Math.min(Math.abs(vNorm), 1), ground - 80 - 6,
+                            carX + ax * 50 * Math.min(Math.abs(vNorm), 1), ground - 80 + 6,
+                            carX + ax * (50 * Math.min(Math.abs(vNorm), 1) + 12), ground - 80);
+                        sk.noStroke(); sk.textSize(11); sk.textFont('Orbitron');
+                        sk.text('v=' + Math.abs(glbV).toFixed(1) + 'm/s', carX + ax * 20, ground - 88);
+                    }
+                    // HUD
+                    sk.noStroke(); sk.fill(0, 0, 0, 120); sk.rect(8, 8, 200, 80, 8);
+                    sk.fill(0, 212, 255); sk.textSize(10); sk.textFont('Orbitron');
+                    sk.text('t: ' + glbT.toFixed(2) + ' s', 16, 28);
+                    sk.text('x: ' + glbX.toFixed(2) + ' m', 16, 44);
+                    sk.text('v: ' + glbV.toFixed(2) + ' m/s', 16, 60);
+                    let mode = document.getElementById('glbMode').value;
+                    sk.fill(200); sk.textSize(9); sk.text(mode.toUpperCase(), 16, 76);
+                    // Update physics
+                    if (glbRunning) {
+                        let v0 = parseFloat(document.getElementById('v0').value);
+                        let a = parseFloat(document.getElementById('acc').value);
+                        let mode2 = document.getElementById('glbMode').value;
+                        if (mode2 === 'glb') a = 0;
+                        let dt = sk.deltaTime / 1000;
+                        glbV = v0 + a * glbT;
+                        glbX = v0 * glbT + 0.5 * a * glbT * glbT;
+                        glbT += dt;
+                        glbTrail.push(sk.map(glbX, 0, 200, 60, W - 60));
+                        if (glbTrail.length > 80) glbTrail.shift();
+                        // Update DOM
+                        document.getElementById('d-t').textContent = glbT.toFixed(2) + ' s';
+                        document.getElementById('d-x').textContent = glbX.toFixed(2) + ' m';
+                        document.getElementById('d-v').textContent = glbV.toFixed(2) + ' m/s';
+                        document.getElementById('d-a').textContent = a.toFixed(2) + ' m/s²';
+                        if (glbX > 200 || glbX < -50) { glbRunning = false; }
+                    }
+                };
+            });
+        }
+        function glbStart() { glbRunning = true; }
+        function glbReset() { glbRunning = false; glbT = 0; glbX = 0; glbV = 0; glbTrail = [];['d-t', 'd-x', 'd-v', 'd-a'].forEach(id => document.getElementById(id).textContent = '0.00'); }
+
+        // ═══════════════════════════════════════════════
+        // TAB 2: NEWTON
+        // ═══════════════════════════════════════════════
+        let skNewton = null, newtonActive = false, nLaw = 1, nObj = { x: 80, v: 0, m: 5, f: 10 };
+        let nObj2 = { x: 0, v: 0 };
+        function initNewton() {
+            if (skNewton) skNewton.remove();
+            setNewton(1);
+            setupSlider('fric', 'fricval', '', updateFma);
+            setupSlider('mass', 'massval', ' kg', updateFma);
+            setupSlider('force', 'forceval', ' N', updateFma);
+            skNewton = new p5(sk => {
+                sk.setup = () => { let c = sk.createCanvas(560, 360); c.parent('box-newton'); };
+                sk.draw = () => {
+                    sk.background(5, 10, 26);
+                    const W = sk.width, H = sk.height, ground = H - 60;
+                    sk.fill(15, 30, 60); sk.noStroke(); sk.rect(0, ground, W, 60);
+                    sk.stroke(30, 50, 80); sk.strokeWeight(1);
+                    for (let i = 0; i < W; i += 40) sk.line(i, ground, i, H);
+                    if (nLaw === 1) drawN1(sk, W, H, ground);
+                    if (nLaw === 2) drawN2(sk, W, H, ground);
+                    if (nLaw === 3) drawN3(sk, W, H, ground);
+                };
+            });
+        }
+        function drawN1(sk, W, H, ground) {
+            let fric = parseFloat(document.getElementById('fric').value) / 100;
+            if (newtonActive) {
+                let dt = sk.deltaTime / 1000;
+                nObj.v *= (1 - fric * dt * 10);
+                nObj.x += nObj.v * dt * 60;
+                if (nObj.x > W + 60) nObj.x = -60;
+                if (nObj.x < -60) nObj.x = W + 60;
+                document.getElementById('n-v').textContent = Math.abs(nObj.v).toFixed(2) + ' m/s';
+                document.getElementById('n-f').textContent = (fric * nObj.m * 9.8).toFixed(1) + ' N';
+                document.getElementById('n-m').textContent = nObj.m + ' kg';
+                document.getElementById('n-a').textContent = (-fric * 9.8).toFixed(2) + ' m/s²';
+            }
+            drawBox(sk, nObj.x, ground - 30, 60, 60, '#00d4ff', nObj.m + ' kg');
+            if (Math.abs(nObj.v) > 0.5) drawArrow(sk, nObj.x + 35, ground - 45, nObj.v > 0 ? 50 : -50, 0, '#00ff88', 'v');
+            sk.fill(120, 180, 255); sk.textSize(12); sk.textFont('Orbitron'); sk.noStroke();
+            sk.text('HUKUM I NEWTON', W / 2 - 80, 30);
+            sk.fill(100); sk.textSize(10); sk.text('"Benda tetap pada keadaannya jika tidak ada gaya neto"', W / 2 - 160, 50);
+        }
+        function drawN2(sk, W, H, ground) {
+            let m = parseFloat(document.getElementById('mass').value);
+            let f = parseFloat(document.getElementById('force').value);
+            let a = f / m;
+            if (newtonActive) {
+                let dt = sk.deltaTime / 1000;
+                nObj.v += a * dt;
+                nObj.x += nObj.v * dt * 30;
+                if (nObj.x > W - 40) { nObj.x = W - 40; nObj.v = 0; }
+                document.getElementById('n-f').textContent = f + ' N';
+                document.getElementById('n-m').textContent = m + ' kg';
+                document.getElementById('n-a').textContent = a.toFixed(2) + ' m/s²';
+                document.getElementById('n-v').textContent = nObj.v.toFixed(2) + ' m/s';
+            }
+            drawBox(sk, nObj.x, ground - 50, 60 + m * 2, 60 + m, '#7c3aed', m + ' kg');
+            drawArrow(sk, nObj.x + (60 + m * 2), ground - 30, f * 2, 0, '#ff6b35', 'F=' + f + 'N');
+            sk.fill(120, 180, 255); sk.textSize(12); sk.textFont('Orbitron'); sk.noStroke();
+            sk.text('HUKUM II NEWTON', W / 2 - 80, 30);
+            sk.fill(100); sk.textSize(10); sk.text('F = m × a  →  a = F/m', W / 2 - 80, 50);
+        }
+        function drawN3(sk, W, H, ground) {
+            if (newtonActive) {
+                let dt = sk.deltaTime / 1000;
+                nObj.x += nObj.v * dt * 40;
+                nObj2.x += nObj2.v * dt * 40;
+                if (nObj.x < 20) nObj.v = Math.abs(nObj.v);
+                if (nObj2.x > W - 80) nObj2.v = -Math.abs(nObj2.v);
+                let dist = Math.abs(nObj.x - nObj2.x);
+                if (dist < 70) {
+                    let tmp = nObj.v; nObj.v = nObj2.v; nObj2.v = tmp;
+                    document.getElementById('n-f').textContent = 'TUMBUKAN!';
+                }
+                document.getElementById('n-v').textContent = Math.abs(nObj.v).toFixed(1) + ' m/s';
+            }
+            drawBox(sk, nObj.x, ground - 50, 60, 60, '#00d4ff', 'A');
+            drawBox(sk, nObj2.x, ground - 50, 60, 60, '#f59e0b', 'B');
+            if (Math.abs(nObj.v) > 0.3) drawArrow(sk, nObj.x + 60, ground - 40, 30, 0, '#00ff88', '');
+            if (Math.abs(nObj2.v) > 0.3) drawArrow(sk, nObj2.x - 30, ground - 40, -30, 0, '#ff4444', '');
+            sk.fill(120, 180, 255); sk.textSize(12); sk.textFont('Orbitron'); sk.noStroke();
+            sk.text('HUKUM III NEWTON', W / 2 - 80, 30);
+            sk.fill(100); sk.textSize(10); sk.text('"Aksi = −Reaksi"', W / 2 - 50, 50);
+        }
+        function drawBox(sk, x, y, w, h, col, label) {
+            sk.fill(col + '33'); sk.stroke(col); sk.strokeWeight(2); sk.rect(x, y, w, h, 6);
+            sk.fill(col); sk.noStroke(); sk.textSize(11); sk.textFont('Inter'); sk.text(label, x + 4, y + h / 2 + 4);
+        }
+        function drawArrow(sk, x, y, len, dy, col, label) {
+            sk.stroke(col); sk.strokeWeight(3); sk.fill(col);
+            sk.line(x, y, x + len, y + dy);
+            let dir = len > 0 ? 1 : -1;
+            sk.triangle(x + len, y - 5, x + len, y + 5, x + len + dir * 12, y);
+            if (label) { sk.noStroke(); sk.textSize(10); sk.text(label, x + len / 2 - 10, y - 8); }
+        }
+        function setNewton(n) {
+            nLaw = n; newtonActive = false;
+            ['n1', 'n2', 'n3'].forEach(k => {
+                document.getElementById(k + '-ctrl').style.display = 'none';
+                document.getElementById(k + 'btn').className = 'btn btn-secondary';
+            });
+            document.getElementById('n' + n + '-ctrl').style.display = 'block';
+            document.getElementById('n' + n + 'btn').className = 'btn btn-primary';
+            newtonReset();
+        }
+        function updateFma() {
+            let m = parseFloat(document.getElementById('mass').value) || 5;
+            let f = parseFloat(document.getElementById('force').value) || 10;
+            let el = document.getElementById('fma-result');
+            if (el) el.textContent = (f / m).toFixed(2);
+        }
+        function newtonStart() {
+            newtonActive = true;
+            if (nLaw === 1) nObj.v = 6;
+            if (nLaw === 3) { nObj.v = 4; nObj2.v = -3; }
+        }
+        function newtonReset() {
+            newtonActive = false;
+            nObj = { x: 80, v: 0, m: 5, f: 10 };
+            nObj2 = { x: 400, v: 0 };
+            ['n-f', 'n-m', 'n-a', 'n-v'].forEach(id => document.getElementById(id).textContent = '0');
+        }
+
+        // ═══════════════════════════════════════════════
+        // TAB 3: PROJECTILE
+        // ═══════════════════════════════════════════════
+        let skProj = null, projRunning = false, projT = 0, projTrail = [], projDone = false;
+        let px = 0, py = 0, pvx = 0, pvy = 0;
+        function initProj() {
+            if (skProj) skProj.remove();
+            projRunning = false; projDone = false; projT = 0; projTrail = [];
+            setupSlider('pv0', 'pv0val', ' m/s', updateProjCalc);
+            setupSlider('pang', 'pangval', '°', updateProjCalc);
+            setupSlider('pg', 'pgval', ' m/s²', updateProjCalc);
+            updateProjCalc();
+            skProj = new p5(sk => {
+                sk.setup = () => { let c = sk.createCanvas(560, 380); c.parent('box-proj'); };
+                sk.draw = () => {
+                    sk.background(5, 10, 26);
+                    const W = sk.width, H = sk.height, ground = H - 50, scale = 3;
+                    let g = parseFloat(document.getElementById('pg').value);
+                    let v0 = parseFloat(document.getElementById('pv0').value);
+                    let ang = parseFloat(document.getElementById('pang').value) * Math.PI / 180;
+                    let Range = v0 * v0 * Math.sin(2 * ang) / g;
+                    let Hmax = v0 * v0 * Math.sin(ang) * Math.sin(ang) / (2 * g);
+                    let scaleX = Math.min((W - 80) / Range, 8);
+                    let scaleY = Math.min((ground - 40) / Hmax, 8);
+                    let sc = Math.min(scaleX, scaleY, 8);
+                    // Sky gradient
+                    for (let y = 0; y < ground; y++) {
+                        let c = sk.map(y, 0, ground, 15, 5);
+                        sk.stroke(c, c * 2, c * 4); sk.line(0, y, W, y);
+                    }
+                    sk.fill(15, 30, 60); sk.noStroke(); sk.rect(0, ground, W, H - ground);
+                    // Grid
+                    sk.stroke(30, 50, 80, 100); sk.strokeWeight(1);
+                    for (let x = 50; x < W; x += 80) sk.line(x, 0, x, ground);
+                    for (let y = ground; y > 0; y -= 60) sk.line(0, y, W, y);
+                    // Trajectory preview (dashed)
+                    sk.stroke(255, 255, 255, 30); sk.strokeWeight(1);
+                    let steps = 60, ox = 40, oy = ground;
+                    for (let i = 1; i <= steps; i++) {
+                        let t1 = (i - 1) / steps * Range / v0 / Math.cos(ang);
+                        let t2 = i / steps * Range / v0 / Math.cos(ang);
+                        let x1 = ox + v0 * Math.cos(ang) * t1 * sc;
+                        let y1 = oy - (v0 * Math.sin(ang) * t1 - 0.5 * g * t1 * t1) * sc;
+                        let x2 = ox + v0 * Math.cos(ang) * t2 * sc;
+                        let y2 = oy - (v0 * Math.sin(ang) * t2 - 0.5 * g * t2 * t2) * sc;
+                        sk.line(x1, y1, x2, y2);
+                    }
+                    // Trail
+                    sk.noStroke();
+                    for (let i = 0; i < projTrail.length; i++) {
+                        let a = sk.map(i, 0, projTrail.length, 0, 200);
+                        let size = sk.map(i, 0, projTrail.length, 2, 8);
+                        sk.fill(245, 158, 11, a); sk.ellipse(projTrail[i].x, projTrail[i].y, size);
+                    }
+                    // Ball
+                    if (projT > 0 || projRunning) {
+                        let bx = 40 + px * sc, by = ground - py * sc;
+                        sk.fill(245, 158, 11); sk.noStroke(); sk.ellipse(bx, by, 18, 18);
+                        // velocity vectors
+                        sk.stroke('#00d4ff'); sk.strokeWeight(2);
+                        sk.line(bx, by, bx + pvx * sc * 0.4, by);
+                        sk.stroke('#ff6b35');
+                        sk.line(bx, by, bx, by - pvy * sc * 0.4);
+                        sk.noStroke(); sk.fill('#00d4ff'); sk.textSize(9); sk.text('vx', bx + pvx * sc * 0.4 + 4, by);
+                        sk.fill('#ff6b35'); sk.text('vy', bx + 4, by - pvy * sc * 0.4 - 4);
+                    } else {
+                        // Launcher icon
+                        sk.fill(0, 212, 255); sk.noStroke(); sk.ellipse(40, ground, 22, 22);
+                    }
+                    // Angle indicator
+                    if (!projRunning && !projDone) {
+                        sk.stroke(255, 200, 0, 150); sk.strokeWeight(1);
+                        let angD = parseFloat(document.getElementById('pang').value);
+                        let ar = ang; let len = 50;
+                        sk.line(40, ground, 40 + Math.cos(ar) * len, ground - Math.sin(ar) * len);
+                        sk.fill(255, 200, 0); sk.noStroke(); sk.textSize(10); sk.text(angD + '°', 60, ground - 20);
+                    }
+                    // Max height marker
+                    if (projDone) {
+                        let peakX = 40 + Range / 2 * sc, peakY = ground - Hmax * sc;
+                        sk.stroke(255, 200, 0, 150); sk.strokeWeight(1); sk.setLineDash([5, 5]);
+                        sk.line(peakX, peakY, peakX, ground); sk.setLineDash([]);
+                        sk.fill(255, 200, 0); sk.noStroke(); sk.textSize(9); sk.textFont('Orbitron');
+                        sk.text('H=' + Hmax.toFixed(1) + 'm', peakX + 4, peakY - 4);
+                        sk.text('R=' + Range.toFixed(1) + 'm', 40 + Range * sc / 2 - 20, ground + 16);
+                    }
+                    // HUD
+                    sk.noStroke(); sk.fill(0, 0, 0, 140); sk.rect(W - 130, 8, 122, 70, 8);
+                    sk.fill(245, 158, 11); sk.textSize(9); sk.textFont('Orbitron');
+                    sk.text('t: ' + projT.toFixed(2) + 's', W - 122, 24);
+                    sk.text('x: ' + px.toFixed(1) + 'm', W - 122, 38);
+                    sk.text('y: ' + py.toFixed(1) + 'm', W - 122, 52);
+                    sk.text('vy:' + pvy.toFixed(1) + 'm/s', W - 122, 66);
+                    // Physics update
+                    if (projRunning) {
+                        let dt = sk.deltaTime / 1000;
+                        projT += dt;
+                        px = pvx * projT;
+                        py = v0 * Math.sin(ang) * projT - 0.5 * g * projT * projT;
+                        let curvy = v0 * Math.sin(ang) - g * projT;
+                        pvy = curvy;
+                        let bx = 40 + px * sc, by = ground - py * sc;
+                        projTrail.push({ x: bx, y: by });
+                        if (projTrail.length > 100) projTrail.shift();
+                        if (py <= 0 && projT > 0.1) {
+                            projRunning = false; projDone = true;
+                            py = 0;
+                            document.getElementById('p-range').textContent = px.toFixed(2) + ' m';
+                            document.getElementById('p-time').textContent = projT.toFixed(2) + ' s';
+                        }
+                        document.getElementById('p-vx').textContent = (pvx).toFixed(2) + ' m/s';
+                        document.getElementById('p-vy').textContent = pvy.toFixed(2) + ' m/s';
+                    }
+                };
+            });
+        }
+        function updateProjCalc() {
+            let v0 = parseFloat(document.getElementById('pv0').value);
+            let ang = parseFloat(document.getElementById('pang').value) * Math.PI / 180;
+            let g = parseFloat(document.getElementById('pg').value);
+            let R = (v0 * v0 * Math.sin(2 * ang) / g).toFixed(2);
+            let H = (v0 * v0 * Math.sin(ang) * Math.sin(ang) / (2 * g)).toFixed(2);
+            let T = (2 * v0 * Math.sin(ang) / g).toFixed(2);
+            document.getElementById('p-range').textContent = R + ' m';
+            document.getElementById('p-hmax').textContent = H + ' m';
+            document.getElementById('p-time').textContent = T + ' s';
+            document.getElementById('p-vx').textContent = (v0 * Math.cos(ang)).toFixed(2) + ' m/s';
+            document.getElementById('p-vy').textContent = (v0 * Math.sin(ang)).toFixed(2) + ' m/s';
+        }
+        function projStart() {
+            projRunning = false; projDone = false; projTrail = [];
+            let v0 = parseFloat(document.getElementById('pv0').value);
+            let ang = parseFloat(document.getElementById('pang').value) * Math.PI / 180;
+            pvx = v0 * Math.cos(ang); pvy = v0 * Math.sin(ang); px = 0; py = 0; projT = 0;
+            setTimeout(() => projRunning = true, 100);
+        }
+        function projReset() { projRunning = false; projDone = false; projTrail = []; projT = 0; px = 0; py = 0; updateProjCalc(); }
+
+        // ═══════════════════════════════════════════════
+        // TAB 4: BRIDGE
+        // ═══════════════════════════════════════════════
+        let skBridge = null, bridgeLoad = 0, bridgeAnimate = false, bridgeFrame = 0;
+        function initBridge() {
+            if (skBridge) skBridge.remove();
+            setupSlider('bload', 'bloadval', ' ton');
+            document.getElementById('bridgeType').addEventListener('change', () => { bridgeAnimate = false; bridgeFrame = 0; });
+            skBridge = new p5(sk => {
+                sk.setup = () => { let c = sk.createCanvas(560, 360); c.parent('box-bridge'); };
+                sk.draw = () => {
+                    sk.background(5, 10, 26);
+                    const W = sk.width, H = sk.height;
+                    let type = document.getElementById('bridgeType').value;
+                    let load = parseFloat(document.getElementById('bload').value);
+                    let maxLoad = { beam: 8, arch: 14, truss: 16, suspension: 20 };
+                    let stress = load / maxLoad[type];
+                    let col = stress < 0.6 ? sk.color(34, 197, 94) : stress < 0.85 ? sk.color(245, 158, 11) : sk.color(239, 68, 68);
+                    // Ground piers
+                    sk.fill(60, 70, 90); sk.noStroke();
+                    sk.rect(60, H - 80, 30, 80); sk.rect(W - 90, H - 80, 30, 80);
+                    sk.rect(50, H - 90, 50, 20, 4); sk.rect(W - 100, H - 90, 50, 20, 4);
+                    let sag = bridgeAnimate ? sk.map(sk.sin(bridgeFrame * .05), -1, 1, 0, stress * 20) : stress * (load > maxLoad[type] * 0.9 ? 8 : 0);
+                    if (type === 'beam') drawBeam(sk, W, H, load, col, sag);
+                    if (type === 'arch') drawArch(sk, W, H, load, col, sag);
+                    if (type === 'truss') drawTruss(sk, W, H, load, col, sag);
+                    if (type === 'suspension') drawSuspension(sk, W, H, load, col, sag);
+                    // Load truck
+                    if (bridgeAnimate) {
+                        let tx = sk.map(sk.cos(bridgeFrame * .02), -1, 1, 80, W - 140);
+                        drawTruck(sk, tx, H - 90 - sag);
+                        bridgeFrame++;
+                    }
+                    // Status HUD
+                    sk.noStroke(); sk.fill(0, 0, 0, 150); sk.rect(8, 8, 180, 100, 8);
+                    sk.fill(col); sk.textSize(10); sk.textFont('Orbitron');
+                    sk.text('BEBAN: ' + load + ' ton', 16, 26);
+                    sk.text('KAPASITAS: ' + maxLoad[type] + ' ton', 16, 42);
+                    let pct = (stress * 100).toFixed(0);
+                    sk.text('TEGANGAN: ' + pct + '%', 16, 58);
+                    sk.fill(stress < 0.85 ? sk.color(34, 197, 94) : sk.color(239, 68, 68));
+                    sk.text(stress >= 1 ? '⚠ BAHAYA!' : stress >= 0.85 ? '⚡ KRITIS' : '✓ AMAN', 16, 78);
+                    // Progress bar
+                    sk.fill(30); sk.rect(16, 86, 150, 8, 4);
+                    sk.fill(col); sk.rect(16, 86, sk.constrain(150 * stress, 0, 150), 8, 4);
+                };
+            });
+        }
+        function drawBeam(sk, W, H, load, col, sag) {
+            sk.stroke(col); sk.strokeWeight(12);
+            sk.beginShape();
+            sk.vertex(80, H - 80); sk.bezierVertex(80, H - 80 + sag / 2, W - 100, H - 80 + sag / 2, W - 80, H - 80); sk.endShape();
+            sk.strokeWeight(1); sk.stroke(col, 150);
+            for (let x = 80; x < W - 80; x += 40) sk.line(x, H - 80, x, H - 110);
+        }
+        function drawArch(sk, W, H, load, col, sag) {
+            sk.stroke(col); sk.strokeWeight(8); sk.noFill();
+            sk.beginShape();
+            for (let x = 80; x <= W - 80; x += 5) {
+                let t = (x - 80) / ((W - 80) - 80);
+                let y = H - 80 - (Math.sin(t * Math.PI) * 120 - sag);
+                sk.curveVertex(x, y);
+            }
+            sk.endShape();
+            sk.stroke(col, 100); sk.strokeWeight(2);
+            for (let x = 120; x < W - 100; x += 50) {
+                let t = (x - 80) / ((W - 80) - 80);
+                let ay = H - 80 - (Math.sin(t * Math.PI) * 120 - sag);
+                sk.line(x, H - 82, x, ay);
+            }
+        }
+        function drawTruss(sk, W, H, load, col, sag) {
+            sk.stroke(col); sk.strokeWeight(4);
+            let pts = [];
+            for (let i = 0; i <= 8; i++) {
+                let x = 80 + i * (W - 160) / 8;
+                let yb = H - 80 + (i % 2 === 0 ? 0 : sag * .5);
+                let yt = H - 130 + (i % 2 === 0 ? -sag * .3 : 0);
+                pts.push({ xb: x, yb, xt: x, yt });
+                sk.line(x, yb, x, yt);
+                if (i > 0) {
+                    sk.line(pts[i - 1].xb, pts[i - 1].yb, x, yb);
+                    sk.line(pts[i - 1].xt, pts[i - 1].yt, x, yt);
+                    sk.line(pts[i - 1].xb, pts[i - 1].yb, x, yt);
+                }
+            }
+        }
+        function drawSuspension(sk, W, H, load, col, sag) {
+            sk.stroke('#888'); sk.strokeWeight(6);
+            sk.line(W / 3, H - 200, W / 3, H - 60);
+            sk.line(2 * W / 3, H - 200, 2 * W / 3, H - 60);
+            sk.stroke(col); sk.strokeWeight(4); sk.noFill();
+            sk.beginShape();
+            for (let x = 80; x <= W - 80; x += 4) {
+                let t = (x - 80) / ((W - 80) - 80);
+                let y = H - 200 + (4 * t * (1 - t) * 130 + sag * t * (1 - t) * 4);
+                sk.curveVertex(x, y);
+            }
+            sk.endShape();
+            let deck = H - 80 + sag * .3;
+            sk.stroke(col); sk.strokeWeight(8);
+            sk.line(80, deck, W - 80, deck);
+            sk.strokeWeight(1); sk.stroke(col, 80);
+            for (let x = 120; x < W - 100; x += 30) {
+                let t = (x - 80) / ((W - 80) - 80);
+                let cabley = H - 200 + (4 * t * (1 - t) * 130);
+                sk.line(x, cabley, x, deck);
+            }
+        }
+        function drawTruck(sk, x, y) {
+            sk.fill(200, 50, 50); sk.noStroke(); sk.rect(x, y - 30, 60, 30, 4);
+            sk.fill(150, 30, 30); sk.rect(x - 20, y - 24, 22, 24, 3);
+            sk.fill(80); sk.ellipse(x, y, 16, 16); sk.ellipse(x + 44, y, 16, 16);
+        }
+        function bridgeSimulate() {
+            bridgeAnimate = true; bridgeFrame = 0;
+            let load = parseFloat(document.getElementById('bload').value);
+            let type = document.getElementById('bridgeType').value;
+            let maxLoad = { beam: 8, arch: 14, truss: 16, suspension: 20 };
+            let stress = load / maxLoad[type];
+            document.getElementById('b-w').textContent = (load * 9.8).toFixed(0) + ' kN';
+            document.getElementById('b-n').textContent = (load * 9.8).toFixed(0) + ' kN';
+            document.getElementById('b-stress').textContent = (stress * 250).toFixed(1) + ' MPa';
+            let statusEl = document.getElementById('b-status');
+            if (stress >= 1) { statusEl.textContent = '⚠ BAHAYA! ROBOH'; statusEl.style.color = '#ef4444'; }
+            else if (stress >= 0.85) { statusEl.textContent = '⚡ KRITIS'; statusEl.style.color = '#f59e0b'; }
+            else { statusEl.textContent = '✓ AMAN'; statusEl.style.color = '#22c55e'; }
+        }
+        function bridgeReset() { bridgeAnimate = false; bridgeFrame = 0;['b-w', 'b-n', 'b-stress'].forEach(id => document.getElementById(id).textContent = '0'); document.getElementById('b-status').textContent = 'AMAN'; document.getElementById('b-status').style.color = '#22c55e'; }
+
+        // Init first tab
+        window.addEventListener('DOMContentLoaded', () => { initGLB(); });
+        // Fix setLineDash for p5
+        p5.prototype.setLineDash = function (list) { this.drawingContext.setLineDash(list); };
+
+        // ── FULLSCREEN ──
+        function toggleFS() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => { });
+            else document.exitFullscreen();
+        }
+        document.addEventListener('fullscreenchange', () => {
+            const isFS = !!document.fullscreenElement;
+            const btn = document.getElementById('fsBtn');
+            if (btn) { btn.textContent = isFS ? '✕' : '⛶'; btn.title = isFS ? 'Keluar Layar Penuh' : 'Layar Penuh'; }
+        });
+    </script>
+</body>
+
+</html>

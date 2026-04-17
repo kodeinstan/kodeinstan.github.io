@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Listrik & Magnet – SimFisika</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #050a1a;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, .4);
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        header a:hover {
+            color: #f97316;
+        }
+
+        header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #f97316, #eab308);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, .2);
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            color: #64748b;
+            background: transparent;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            background: rgba(249, 115, 22, .15);
+            border-color: #f97316;
+            color: #f97316;
+        }
+
+        .lab {
+            display: none;
+            padding: 24px;
+            gap: 20px;
+            flex-direction: column;
+        }
+
+        .lab.active {
+            display: flex;
+        }
+
+        .sim-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 20px;
+            align-items: stretch;
+            height: calc(100vh - 140px);
+            min-height: 500px;
+        }
+
+        @media(max-width:768px) {
+            .sim-wrapper {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        .canvas-box {
+            background: #050a1a;
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            color: #f97316;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-size: 11px;
+            color: #94a3b8;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: #f97316;
+            cursor: pointer;
+        }
+
+        .val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: #e2e8f0;
+            float: right;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+        }
+
+        .data-row span:first-child {
+            color: #64748b;
+        }
+
+        .data-row span:last-child {
+            font-family: 'Orbitron', sans-serif;
+            color: #f97316;
+            font-size: 11px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            transition: all .2s;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .btn-p {
+            background: linear-gradient(135deg, #f97316, #eab308);
+            color: #050a1a;
+        }
+
+        .btn-s {
+            background: rgba(255, 255, 255, .08);
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, .12);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .info-box {
+            background: rgba(249, 115, 22, .05);
+            border: 1px solid rgba(249, 115, 22, .2);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #94a3b8;
+        }
+
+        .info-box strong {
+            color: #f97316;
+        }
+
+        .formula {
+            background: rgba(234, 179, 8, .1);
+            border: 1px solid rgba(234, 179, 8, .3);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: #fde68a;
+            margin: 6px 0;
+        }
+
+        /* Fullscreen */
+        #fsBtn {
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .15);
+            color: #94a3b8;
+            border-radius: 8px;
+            padding: 5px 12px;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            transition: all .2s;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        #fsBtn:hover {
+            background: rgba(255, 255, 255, .18);
+            color: #e2e8f0;
+        }
+
+        :fullscreen #fsBtn,
+        :-webkit-full-screen #fsBtn {
+            color: #00d4ff;
+            border-color: #00d4ff;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <a href="index.html">← MENU</a>
+        <h1>⚡ LISTRIK & MAGNET</h1>
+        <span style="color:#334155;font-size:11px;">LAB INTERAKTIF FISIKA</span>
+        <button id="fsBtn" onclick="toggleFS()" title="Layar Penuh">⛶</button>
+    </header>
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('circuit')">Rangkaian Listrik</div>
+        <div class="tab" onclick="switchTab('field')">Medan Listrik</div>
+        <div class="tab" onclick="switchTab('em')">Induksi EM</div>
+    </div>
+
+    <!-- RANGKAIAN LISTRIK -->
+    <div id="tab-circuit" class="lab active">
+        <div class="sim-wrapper">
+            <div class="canvas-box" id="box-circuit"></div>
+            <div class="panel">
+                <div class="card">
+                    <h3>KOMPONEN</h3>
+                    <label>Tegangan (V) <span class="val" id="emfval">12</span> V</label>
+                    <input type="range" id="emfSl" min="1" max="24" value="12" step="1" />
+                    <label style="margin-top:8px">R1 (Ω) <span class="val" id="r1val">100</span></label>
+                    <input type="range" id="r1Sl" min="10" max="500" value="100" step="10" />
+                    <label style="margin-top:8px">R2 (Ω) <span class="val" id="r2val">200</span></label>
+                    <input type="range" id="r2Sl" min="10" max="500" value="200" step="10" />
+                    <label style="margin-top:8px">Tipe Rangkaian</label>
+                    <select id="circType"
+                        style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:6px;font-size:12px;"
+                        onchange="circUpdate()">
+                        <option value="series">Seri</option>
+                        <option value="parallel">Paralel</option>
+                    </select>
+                    <div class="btn-row"><button class="btn btn-p" onclick="circUpdate()">↻ HITUNG</button></div>
+                </div>
+                <div class="card">
+                    <h3>HASIL</h3>
+                    <div class="data-row"><span>R Total (Ω)</span><span id="c-rt">300</span></div>
+                    <div class="data-row"><span>I Total (A)</span><span id="c-it">0.04</span></div>
+                    <div class="data-row"><span>V₁ (V)</span><span id="c-v1">4</span></div>
+                    <div class="data-row"><span>V₂ (V)</span><span id="c-v2">8</span></div>
+                    <div class="data-row"><span>P Total (W)</span><span id="c-pt">0.48</span></div>
+                </div>
+                <div class="card">
+                    <h3>RUMUS</h3>
+                    <div class="formula">V = I · R</div>
+                    <div class="formula">Seri: R꜀ = R₁+R₂</div>
+                    <div class="formula">Paralel: 1/R꜀ = 1/R₁+1/R₂</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MEDAN LISTRIK -->
+    <div id="tab-field" class="lab">
+        <div class="sim-wrapper">
+            <div class="canvas-box" id="box-field"></div>
+            <div class="panel">
+                <div class="card">
+                    <h3>KONFIGURASI MUATAN</h3>
+                    <label>Skenario</label>
+                    <select id="fieldScene"
+                        style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:6px;font-size:12px;"
+                        onchange="fieldChanged()">
+                        <option value="dipole">Dipol (+ dan −)</option>
+                        <option value="same">Dua Muatan Sama (+ dan +)</option>
+                        <option value="single">Muatan Tunggal</option>
+                    </select>
+                    <label style="margin-top:8px">Besar Muatan (μC) <span class="val" id="qfval">5</span></label>
+                    <input type="range" id="qfSl" min="1" max="20" value="5" step="1" />
+                    <div class="info-box" style="margin-top:10px"><strong>Hukum Coulomb:</strong><br />F =
+                        kq₁q₂/r²<br /><strong>Medan Listrik:</strong><br />E = kq/r²</div>
+                </div>
+                <div class="card">
+                    <h3>RUMUS</h3>
+                    <div class="formula">E = k · q / r²</div>
+                    <div class="formula">k = 9×10⁹ N·m²/C²</div>
+                    <div class="info-box">Garis medan listrik keluar dari muatan positif (+) dan masuk ke muatan negatif
+                        (−). Kerapatan garis = kuat medan.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INDUKSI EM -->
+    <div id="tab-em" class="lab">
+        <div class="sim-wrapper">
+            <div class="canvas-box" id="box-em"></div>
+            <div class="panel">
+                <div class="card">
+                    <h3>GENERATOR LISTRIK</h3>
+                    <label>Kec. Putar (rpm) <span class="val" id="rpmval">60</span></label>
+                    <input type="range" id="rpmSl" min="10" max="200" value="60" step="10" />
+                    <label style="margin-top:8px">Kuat Medan B (T) <span class="val" id="bval">0.5</span></label>
+                    <input type="range" id="bSl" min="0.1" max="2" value="0.5" step="0.1" />
+                    <label style="margin-top:8px">Luas Kumparan A (m²) <span class="val" id="aval">0.1</span></label>
+                    <input type="range" id="aSl" min="0.01" max="0.5" value="0.1" step="0.01" />
+                    <div class="btn-row"><button class="btn btn-p" onclick="emUpdate()">↻ UPDATE</button></div>
+                </div>
+                <div class="card">
+                    <h3>HASIL</h3>
+                    <div class="data-row"><span>GGL Maks (ε₀)</span><span id="em-e0">0 V</span></div>
+                    <div class="data-row"><span>Frekuensi (f)</span><span id="em-f">1 Hz</span></div>
+                    <div class="data-row"><span>GGL Sesaat (ε)</span><span id="em-e">0 V</span></div>
+                </div>
+                <div class="card">
+                    <h3>RUMUS</h3>
+                    <div class="formula">ε₀ = N·B·A·ω</div>
+                    <div class="formula">ε = ε₀ · sin(ωt)</div>
+                    <div class="info-box"><strong>Hukum Faraday:</strong> GGL induksi = laju perubahan fluks
+                        magnet<br />ε = −dΦ/dt</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(id) {
+            document.querySelectorAll('.lab').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + id).classList.add('active');
+            event.target.classList.add('active');
+            if (id === 'circuit') initCircuit();
+            if (id === 'field') initField();
+            if (id === 'em') initEM();
+        }
+
+        // ── CIRCUIT ──
+        let skCirc = null, electrons = [];
+        function initCircuit() {
+            if (skCirc) skCirc.remove();
+            ['emfSl', 'r1Sl', 'r2Sl'].forEach(id => {
+                let dp = id.replace('Sl', 'val');
+                document.getElementById(id).addEventListener('input', e => { document.getElementById(dp).textContent = e.target.value; circUpdate(); });
+            });
+            circUpdate();
+            electrons = [];
+            for (let i = 0; i < 20; i++) electrons.push({ t: Math.random(), path: 0 });
+            skCirc = new p5(sk => {
+                sk.setup = () => { let c = sk.createCanvas(540, 360); c.parent('box-circuit'); };
+                sk.draw = () => {
+                    sk.background(5, 10, 26);
+                    const W = sk.width, H = sk.height;
+                    let V = parseFloat(document.getElementById('emfSl').value);
+                    let R1 = parseFloat(document.getElementById('r1Sl').value);
+                    let R2 = parseFloat(document.getElementById('r2Sl').value);
+                    let type = document.getElementById('circType').value;
+                    let Rt = type === 'series' ? R1 + R2 : (R1 * R2 / (R1 + R2));
+                    let I = V / Rt;
+                    let spd = I * 3;
+                    // Circuit paths
+                    let pts = {
+                        battery: [{ x: 80, y: 180 }, { x: 80, y: 80 }],
+                        top: [{ x: 80, y: 80 }, { x: 460, y: 80 }],
+                        right: [{ x: 460, y: 80 }, { x: 460, y: 180 }],
+                        bottom: [{ x: 460, y: 180 }, { x: 80, y: 180 }]
+                    };
+                    // Draw wires
+                    sk.stroke(249, 115, 22, 100); sk.strokeWeight(3); sk.noFill();
+                    sk.line(80, 180, 80, 80); sk.line(80, 80, 460, 80);
+                    sk.line(460, 80, 460, 180); sk.line(460, 180, 80, 180);
+                    // Battery
+                    sk.fill(249, 115, 22); sk.noStroke(); sk.rect(68, 150, 24, 60, 4);
+                    sk.fill(255); sk.textSize(10); sk.textFont('Orbitron');
+                    sk.text(V + 'V', 60, 175);
+                    // Resistors
+                    if (type === 'series') {
+                        drawResistor(sk, 200, 80, 'R1=' + R1 + 'Ω', R1, Rt);
+                        drawResistor(sk, 340, 80, 'R2=' + R2 + 'Ω', R2, Rt);
+                    } else {
+                        sk.stroke(249, 115, 22, 100); sk.strokeWeight(3);
+                        sk.line(220, 80, 220, 180); sk.line(340, 80, 340, 180);
+                        drawResistor(sk, 280, 80, 'R1', R1, Rt);
+                        drawResistor(sk, 280, 180, 'R2', R2, Rt);
+                        sk.line(240, 80, 320, 80); sk.line(240, 180, 320, 180);
+                    }
+                    // Animate electrons
+                    for (let e of electrons) {
+                        e.t = (e.t + spd * sk.deltaTime / 1000 * 0.08) % 1;
+                        let pos = getCircuitPos(e.t, W, H);
+                        sk.fill(0, 200, 255, 200); sk.noStroke(); sk.ellipse(pos.x, pos.y, 6, 6);
+                    }
+                    // Voltmeter glow
+                    sk.fill(34, 197, 94, 60); sk.noStroke(); sk.ellipse(460, 130, 30, 30);
+                    sk.fill(34, 197, 94); sk.textSize(8); sk.textFont('Orbitron'); sk.text('V', 453, 133);
+                    // Current display
+                    sk.fill(0, 0, 0, 160); sk.rect(8, 8, 180, 50, 8);
+                    sk.fill(249, 115, 22); sk.textSize(10); sk.textFont('Orbitron');
+                    sk.text('I = ' + I.toFixed(3) + ' A', 16, 26);
+                    sk.text('P = ' + (V * I).toFixed(2) + ' W', 16, 44);
+                };
+            });
+        }
+        function drawResistor(sk, x, y, label, R, Rt) {
+            sk.fill(30, 50, 80); sk.stroke(249, 115, 22); sk.strokeWeight(2);
+            sk.rect(x - 30, y - 12, 60, 24, 4);
+            let heat = R / Rt;
+            sk.fill(249, Math.max(0, 115 - heat * 100), 22, 180); sk.noStroke();
+            sk.rect(x - 28, y - 10, 56 * Math.min(heat, 1), 20, 3);
+            sk.fill(255); sk.textSize(9); sk.textFont('Orbitron'); sk.text(label, x - 22, y + 4);
+        }
+        function getCircuitPos(t, W, H) {
+            // Clockwise: right(80,180)→(80,80)→(460,80)→(460,180)→(80,180)
+            let pts = [[80, 180], [80, 80], [460, 80], [460, 180], [80, 180]];
+            let total = 0, segs = [];
+            for (let i = 0; i < pts.length - 1; i++) {
+                let dx = pts[i + 1][0] - pts[i][0], dy = pts[i + 1][1] - pts[i][1];
+                let len = Math.sqrt(dx * dx + dy * dy);
+                segs.push(len); total += len;
+            }
+            let d = t * total;
+            for (let i = 0; i < segs.length; i++) {
+                if (d <= segs[i]) {
+                    let frac = d / segs[i];
+                    return { x: pts[i][0] + (pts[i + 1][0] - pts[i][0]) * frac, y: pts[i][1] + (pts[i + 1][1] - pts[i][1]) * frac };
+                }
+                d -= segs[i];
+            }
+            return { x: pts[0][0], y: pts[0][1] };
+        }
+        function circUpdate() {
+            let V = parseFloat(document.getElementById('emfSl').value);
+            let R1 = parseFloat(document.getElementById('r1Sl').value);
+            let R2 = parseFloat(document.getElementById('r2Sl').value);
+            let type = document.getElementById('circType').value;
+            let Rt = type === 'series' ? R1 + R2 : (R1 * R2 / (R1 + R2));
+            let I = V / Rt;
+            let V1 = type === 'series' ? I * R1 : V;
+            let V2 = type === 'series' ? I * R2 : V;
+            let I1 = type === 'parallel' ? V / R1 : I;
+            let I2 = type === 'parallel' ? V / R2 : I;
+            document.getElementById('c-rt').textContent = Rt.toFixed(1);
+            document.getElementById('c-it').textContent = I.toFixed(4);
+            document.getElementById('c-v1').textContent = V1.toFixed(2);
+            document.getElementById('c-v2').textContent = V2.toFixed(2);
+            document.getElementById('c-pt').textContent = (V * I).toFixed(3);
+        }
+
+        // ── FIELD ──
+        let skField = null;
+        function initField() {
+            if (skField) skField.remove();
+            document.getElementById('qfSl').addEventListener('input', e => { document.getElementById('qfval').textContent = e.target.value; });
+            skField = new p5(sk => {
+                sk.setup = () => { let c = sk.createCanvas(540, 360); c.parent('box-field'); };
+                sk.draw = () => {
+                    sk.background(5, 10, 26);
+                    const W = sk.width, H = sk.height;
+                    let scene = document.getElementById('fieldScene').value;
+                    let q = parseFloat(document.getElementById('qfSl').value) * 1e-6;
+                    let charges = [];
+                    if (scene === 'dipole') charges = [{ x: W / 2 - 80, y: H / 2, q: q }, { x: W / 2 + 80, y: H / 2, q: -q }];
+                    else if (scene === 'same') charges = [{ x: W / 2 - 80, y: H / 2, q: q }, { x: W / 2 + 80, y: H / 2, q: q }];
+                    else charges = [{ x: W / 2, y: H / 2, q: q }];
+                    // Field lines
+                    for (let c of charges) {
+                        let numLines = 12;
+                        for (let l = 0; l < numLines; l++) {
+                            let angle = (l / numLines) * Math.PI * 2;
+                            let cx = c.x + Math.cos(angle) * 22, cy = c.y + Math.sin(angle) * 22;
+                            let col = c.q > 0 ? sk.color(239, 68, 68, 150) : sk.color(6, 182, 212, 150);
+                            sk.stroke(col); sk.strokeWeight(1); sk.noFill();
+                            sk.beginShape();
+                            let fx = cx, fy = cy;
+                            for (let s = 0; s < 80; s++) {
+                                sk.curveVertex(fx, fy);
+                                let ex = 0, ey = 0;
+                                for (let ch of charges) {
+                                    let dx = fx - ch.x, dy = fy - ch.y;
+                                    let r2 = dx * dx + dy * dy + 0.01;
+                                    let r = Math.sqrt(r2);
+                                    let factor = ch.q / (r2 * r) * 1e11;
+                                    ex += factor * dx; ey += factor * dy;
+                                }
+                                let em = Math.sqrt(ex * ex + ey * ey);
+                                if (em < 0.001) break;
+                                fx += (ex / em) * 4; fy += (ey / em) * 4;
+                                if (fx < 0 || fx > W || fy < 0 || fy > H) break;
+                            }
+                            sk.endShape();
+                        }
+                        // Charge symbol
+                        let col = c.q > 0 ? sk.color(239, 68, 68) : sk.color(6, 182, 212);
+                        sk.fill(col); sk.noStroke(); sk.ellipse(c.x, c.y, 30, 30);
+                        sk.fill(255); sk.textSize(14); sk.textFont('Orbitron');
+                        sk.text(c.q > 0 ? '+' : '−', c.x - 5, c.y + 5);
+                    }
+                };
+            });
+        }
+        function fieldChanged() { if (skField) { skField.remove(); skField = null; initField(); } }
+
+        // ── EM INDUCTION ──
+        let skEM = null, emT = 0;
+        function initEM() {
+            if (skEM) skEM.remove();
+            ['rpmSl', 'bSl', 'aSl'].forEach(id => {
+                let dp = id.replace('Sl', 'val');
+                document.getElementById(id).addEventListener('input', e => { document.getElementById(dp).textContent = e.target.value; emUpdate(); });
+            });
+            emUpdate();
+            skEM = new p5(sk => {
+                sk.setup = () => { let c = sk.createCanvas(540, 360); c.parent('box-em'); };
+                sk.draw = () => {
+                    sk.background(5, 10, 26);
+                    const W = sk.width, H = sk.height;
+                    let rpm = parseFloat(document.getElementById('rpmSl').value);
+                    let B = parseFloat(document.getElementById('bSl').value);
+                    let A = parseFloat(document.getElementById('aSl').value);
+                    let omega = rpm / 60 * 2 * Math.PI;
+                    emT += sk.deltaTime / 1000;
+                    let e0 = B * A * omega * 100;
+                    let e = e0 * Math.sin(omega * emT);
+                    document.getElementById('em-e').textContent = e.toFixed(1) + ' V';
+                    // Magnet poles
+                    sk.fill(239, 68, 68, 200); sk.noStroke(); sk.rect(30, H / 2 - 60, 40, 120, 4);
+                    sk.fill(6, 182, 212, 200); sk.rect(W - 70, H / 2 - 60, 40, 120, 4);
+                    sk.fill(255); sk.textSize(12); sk.textFont('Orbitron'); sk.text('N', 42, H / 2 + 6); sk.text('S', W - 58, H / 2 + 6);
+                    // Magnetic field lines
+                    sk.stroke(100, 150, 255, 60); sk.strokeWeight(1);
+                    for (let y = H / 2 - 50; y < H / 2 + 60; y += 15) sk.line(70, y, W - 70, y);
+                    // Rotating coil
+                    sk.translate(W / 2, H / 2);
+                    sk.rotate(omega * emT);
+                    let w = 50, h = 70;
+                    sk.stroke(249, 115, 22); sk.strokeWeight(3); sk.noFill();
+                    sk.rect(-w / 2, -h / 2, w, h, 3);
+                    sk.stroke(249, 115, 22, 100); sk.strokeWeight(1);
+                    for (let i = -2; i <= 2; i++) sk.line(-w / 2, i * 12, w / 2, i * 12);
+                    sk.resetMatrix();
+                    // AC output graph
+                    let gx = W - 150, gy = H - 80, gw = 140, gh = 50;
+                    sk.fill(0, 0, 0, 150); sk.noStroke(); sk.rect(gx, gy - gh, gw, gh * 2, 4);
+                    sk.stroke(249, 115, 22); sk.strokeWeight(1.5); sk.noFill(); sk.beginShape();
+                    for (let t = 0; t <= 1; t += 0.02) {
+                        let y = gy - e0 * Math.sin(omega * (emT - t + 1)) * 0.4 * gh / e0;
+                        sk.vertex(gx + t * gw, Math.max(gy - gh, Math.min(gy + gh, y)));
+                    }
+                    sk.endShape();
+                    sk.fill(200); sk.noStroke(); sk.textSize(8); sk.textFont('Orbitron'); sk.text('GGL SESAAT', gx + 4, gy - gh - 4);
+                    sk.fill(249, 115, 22); sk.textSize(10); sk.text(e.toFixed(1) + 'V', gx + 4, gy + gh - 4);
+                };
+            });
+        }
+        function emUpdate() {
+            let rpm = parseFloat(document.getElementById('rpmSl').value);
+            let B = parseFloat(document.getElementById('bSl').value);
+            let A = parseFloat(document.getElementById('aSl').value);
+            let omega = rpm / 60 * 2 * Math.PI;
+            let e0 = B * A * omega * 100;
+            let f = rpm / 60;
+            document.getElementById('em-e0').textContent = e0.toFixed(1) + ' V';
+            document.getElementById('em-f').textContent = f.toFixed(1) + ' Hz';
+        }
+
+        window.addEventListener('DOMContentLoaded', () => { initCircuit(); });
+        // ── FULLSCREEN ──
+        function toggleFS() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => { });
+            else document.exitFullscreen();
+        }
+        document.addEventListener('fullscreenchange', () => {
+            const isFS = !!document.fullscreenElement;
+            const btn = document.getElementById('fsBtn');
+            if (btn) { btn.textContent = isFS ? '✕' : '⛶'; btn.title = isFS ? 'Keluar Layar Penuh' : 'Layar Penuh'; }
+        });
+    </script>
+</body>
+
+</html>

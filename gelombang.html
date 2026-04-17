@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Gelombang – SimFisika</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #050a1a;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, .4);
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        header a:hover {
+            color: #8b5cf6;
+        }
+
+        header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, .2);
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            color: #64748b;
+            background: transparent;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            background: rgba(139, 92, 246, .15);
+            border-color: #8b5cf6;
+            color: #8b5cf6;
+        }
+
+        .lab {
+            display: none;
+            padding: 24px;
+            gap: 20px;
+            flex-direction: column;
+        }
+
+        .lab.active {
+            display: flex;
+        }
+
+        .sim-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 20px;
+            align-items: stretch;
+            height: calc(100vh - 140px);
+            min-height: 500px;
+        }
+
+        @media(max-width:768px) {
+            .sim-wrapper {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        .canvas-box {
+            background: #050a1a;
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            color: #8b5cf6;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-size: 11px;
+            color: #94a3b8;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: #8b5cf6;
+            cursor: pointer;
+        }
+
+        .val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: #e2e8f0;
+            float: right;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+        }
+
+        .data-row span:first-child {
+            color: #64748b;
+        }
+
+        .data-row span:last-child {
+            font-family: 'Orbitron', sans-serif;
+            color: #8b5cf6;
+            font-size: 11px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            transition: all .2s;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .btn-p {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            color: #fff;
+        }
+
+        .btn-s {
+            background: rgba(255, 255, 255, .08);
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, .12);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .info-box {
+            background: rgba(139, 92, 246, .05);
+            border: 1px solid rgba(139, 92, 246, .2);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #94a3b8;
+        }
+
+        .info-box strong {
+            color: #8b5cf6;
+        }
+
+        .formula {
+            background: rgba(236, 72, 153, .1);
+            border: 1px solid rgba(236, 72, 153, .3);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: #f9a8d4;
+            margin: 6px 0;
+        }
+
+        /* Fullscreen */
+        #fsBtn {
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .15);
+            color: #94a3b8;
+            border-radius: 8px;
+            padding: 5px 12px;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            transition: all .2s;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        #fsBtn:hover {
+            background: rgba(255, 255, 255, .18);
+            color: #e2e8f0;
+        }
+
+        :fullscreen #fsBtn,
+        :-webkit-full-screen #fsBtn {
+            color: #00d4ff;
+            border-color: #00d4ff;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <a href="index.html">← MENU</a>
+        <h1>〰 GELOMBANG</h1>
+        <span style="color:#334155;font-size:11px;">LAB INTERAKTIF FISIKA</span>
+        <button id="fsBtn" onclick="toggleFS()" title="Layar Penuh">⛶</button>
+    </header>
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('wave')">Gelombang Mekanik</div>
+        <div class="tab" onclick="switchTab('superposisi')">Superposisi</div>
+        <div class="tab" onclick="switchTab('doppler')">Efek Doppler</div>
+        <div class="tab" onclick="switchTab('cahaya')">Cahaya & Difraksi</div>
+    </div>
+
+    <div id="tab-wave" class="lab active">
+        <div class="sim-wrapper">
+            <div class="canvas-box" id="box-wave"></div>
+            <div class="panel">
+                <div class="card">
+                    <h3>PARAMETER GELOMBANG</h3>
+                    <label>Amplitudo (A) <span class="val" id="awave">50</span> px</label>
+                    <input type="range" id="awaveSl" min="10" max="100" value="50" step="5" />
+                    <label style="margin-top:8px">Frekuensi (f) <span class="val" id="fwave">1</span> Hz</label>
+                    <input type="range" id="fwaveSl" min="0.5" max="5" value="1" step="0.5" />
+                    <label style="margin-top:8px">Panjang Gel (λ) <span class="val" id="lwave">200</span> px</label>
+                    <input type="range" id="lwaveSl" min="50" max="400" value="200" step="10" />
+                    <label style="margin-top:8px">Jenis</label>
+                    <select id="waveType"
+                        style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:6px;font-size:12px;">
+                        <option value="transverse">Transversal</option>
+                        <option value="longitudinal">Longitudinal</option>
+                    </select>
+                </div>
+                <div class="card">
+                    <h3>DATA</h3>
+                    <div class="data-row"><span>Kecepatan (v)</span><span id="w-v">200 m/s</span></div>
+                    <div class="data-row"><span>Periode (T)</span><span id="w-T">1 s</span></div>
+                    <div class="data-row"><span>Frekuensi</span><span id="w-f">1 Hz</span></div>
+                </div>
+                <div class="card">
+                    <h3>RUMUS</h3>
+                    <div class="formula">v = λ · f</div>
+                    <div class="formula">T = 1 / f</div>
+                    <div class="info-box"><strong>Transversal:</strong> Arah getaran ⊥ arah
+                        rambat<br /><strong>Longitudinal:</strong> Arah getaran // arah rambat (misal: bunyi)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-superposisi" class="lab">
+        <div class="sim-wrapper">
+            <div class="canvas-box" id="box-super"></div>
+            <div class="panel">
+                <div class="card">
+                    <h3>GELOMBANG 1</h3>
+                    <label>A₁ <span class="val" id="a1s">40</span></label>
+                    <input type="range" id="a1sSl" min="10" max="80" value="40" step="5" />
+                    <label>f₁ <span class="val" id="f1s">1</span> Hz</label>
+                    <input type="range" id="f1sSl" min="0.5" max="4" value="1" step="0.5" />
+                </div>
+                <div class="card">
+                    <h3>GELOMBANG 2</h3>
+                    <label>A₂ <span class="val" id="a2s">40</span></label>
+                    <input type="range" id="a2sSl" min="10" max="80" value="40" step="5" />
+                    <label>f₂ <span class="val" id="f2s">1.5</span> Hz</label>
+                    <input type="range" id="f2sSl" min="0.5" max="4" value="1.5" step="0.5" />
+                </div>
+                <div class="card">
+                    <h3>KONSEP</h3>
+                    <div class="formula">y = y₁ + y₂</div>
+                    <div class="info-box"><strong>Interferensi:</strong><br />Konstruktif: gelombang sefase → amplitudo
+                        bertambah<br />Destruktif: berlawanan fasa → saling meniadakan<br /><strong>Pelayangan</strong>
+                        terjadi saat f₁ ≈ f₂</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-doppler" class="lab">
+        <div class="sim-wrapper">
+            <div class="canvas-box" id="box-doppler"></div>
+            <div class="panel">
+                <div class="card">
+                    <h3>EFEK DOPPLER</h3>
+                    <label>Frekuensi Sumber (f₀) <span class="val" id="f0d">440</span> Hz</label>
+                    <input type="range" id="f0dSl" min="100" max="1000" value="440" step="10" />
+                    <label style="margin-top:8px">Kec. Sumber (vs) <span class="val" id="vsd">0</span> m/s</label>
+                    <input type="range" id="vsdSl" min="-50" max="50" value="0" step="5" />
+                    <label style="margin-top:8px">Kec. Pengamat (vo) <span class="val" id="vod">0</span> m/s</label>
+                    <input type="range" id="vodSl" min="-50" max="50" value="0" step="5" />
+                    <div class="btn-row"><button class="btn btn-p" onclick="dopplerUpdate()">↻ HITUNG</button></div>
+                </div>
+                <div class="card">
+                    <h3>HASIL</h3>
+                    <div class="data-row"><span>f Terdengar</span><span id="d-fobs">440 Hz</span></div>
+                    <div class="data-row"><span>Perubahan</span><span id="d-delta">0 Hz</span></div>
+                    <div class="data-row"><span>Efek</span><span id="d-effect" style="color:#8b5cf6">TIDAK ADA</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>RUMUS</h3>
+                    <div class="formula">f' = f₀(v+vo)/(v+vs)</div>
+                    <div class="info-box">v suara = 340 m/s<br /><strong>Mendekati:</strong> f' > f₀ (nada lebih
+                        tinggi)<br /><strong>Menjauh:</strong> f' < f₀ (nada lebih rendah)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-cahaya" class="lab">
+            <div class="sim-wrapper">
+                <div class="canvas-box" id="box-cahaya"></div>
+                <div class="panel">
+                    <div class="card">
+                        <h3>CELAH YOUNG</h3>
+                        <label>Jarak Celah (d) mm <span class="val" id="dcval">1</span></label>
+                        <input type="range" id="dcSl" min="0.1" max="3" value="1" step="0.1" />
+                        <label style="margin-top:8px">Panjang Gel λ (nm) <span class="val" id="lcval">550</span></label>
+                        <input type="range" id="lcSl" min="380" max="780" value="550" step="5" />
+                        <label style="margin-top:8px">Jarak Layar (L) m <span class="val" id="llval">1</span></label>
+                        <input type="range" id="llSl" min="0.5" max="3" value="1" step="0.1" />
+                        <div class="btn-row"><button class="btn btn-p" onclick="cahayaUpdate()">↻ HITUNG</button></div>
+                    </div>
+                    <div class="card">
+                        <h3>HASIL</h3>
+                        <div class="data-row"><span>Lebar Terang (Δy)</span><span id="c-dy">0.55 mm</span></div>
+                        <div class="data-row"><span>Orde ke-1 (y₁)</span><span id="c-y1">0 mm</span></div>
+                        <div class="data-row"><span>Warna</span><span id="c-color">Hijau</span></div>
+                    </div>
+                    <div class="card">
+                        <h3>RUMUS</h3>
+                        <div class="formula">y = mλL / d</div>
+                        <div class="formula">Δy = λL / d</div>
+                        <div class="info-box"><strong>Interferensi terang</strong> saat beda lintasan =
+                            mλ<br /><strong>Interferensi gelap</strong> saat beda lintasan = (m+½)λ</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function switchTab(id) {
+                document.querySelectorAll('.lab').forEach(l => l.classList.remove('active'));
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.getElementById('tab-' + id).classList.add('active');
+                event.target.classList.add('active');
+                if (id === 'wave') initWave();
+                if (id === 'superposisi') initSuper();
+                if (id === 'doppler') initDoppler();
+                if (id === 'cahaya') initCahaya();
+            }
+
+            // ── WAVE ──
+            let skWave = null, wt = 0;
+            function initWave() {
+                if (skWave) skWave.remove();
+                ['awaveSl', 'fwaveSl', 'lwaveSl'].forEach(id => {
+                    let dp = id.replace('Sl', '');
+                    document.getElementById(id).addEventListener('input', e => { document.getElementById(dp).textContent = e.target.value; waveDataUpdate(); });
+                });
+                waveDataUpdate();
+                skWave = new p5(sk => {
+                    sk.setup = () => { let c = sk.createCanvas(540, 360); c.parent('box-wave'); };
+                    sk.draw = () => {
+                        sk.background(5, 10, 26);
+                        const W = sk.width, H = sk.height;
+                        let A = parseFloat(document.getElementById('awaveSl').value);
+                        let f = parseFloat(document.getElementById('fwaveSl').value);
+                        let lam = parseFloat(document.getElementById('lwaveSl').value);
+                        let type = document.getElementById('waveType').value;
+                        wt += sk.deltaTime / 1000;
+                        // Grid
+                        sk.stroke(30, 50, 80, 80); sk.strokeWeight(1);
+                        for (let x = 0; x < W; x += 40) sk.line(x, 0, x, H);
+                        sk.line(0, H / 2, W, H / 2);
+                        if (type === 'transverse') {
+                            // Transverse wave
+                            sk.stroke(139, 92, 246); sk.strokeWeight(2.5); sk.noFill();
+                            sk.beginShape();
+                            for (let x = 0; x < W; x += 2) {
+                                let y = H / 2 + A * Math.sin(2 * Math.PI * (x / lam - f * wt));
+                                sk.vertex(x, y);
+                            }
+                            sk.endShape();
+                            // Animated dot
+                            let dotX = W / 2;
+                            let dotY = H / 2 + A * Math.sin(2 * Math.PI * (dotX / lam - f * wt));
+                            sk.fill(236, 72, 153); sk.noStroke(); sk.ellipse(dotX, dotY, 14, 14);
+                            // Arrows showing vibration direction
+                            sk.stroke(236, 72, 153, 100); sk.strokeWeight(1);
+                            for (let x = 50; x < W - 50; x += lam / 2) {
+                                let y = H / 2 + A * Math.sin(2 * Math.PI * (x / lam - f * wt));
+                                sk.line(x, H / 2, x, y);
+                            }
+                            sk.fill(139, 92, 246); sk.noStroke(); sk.textSize(10); sk.textFont('Orbitron');
+                            sk.text('GELOMBANG TRANSVERSAL', 20, 20);
+                        } else {
+                            // Longitudinal wave
+                            sk.fill(139, 92, 246); sk.noStroke(); sk.textSize(10); sk.textFont('Orbitron');
+                            sk.text('GELOMBANG LONGITUDINAL', 20, 20);
+                            let numPts = 30;
+                            for (let i = 0; i < numPts; i++) {
+                                let baseX = i * (W - 40) / numPts + 20;
+                                let disp = A * 0.4 * Math.sin(2 * Math.PI * (baseX / lam - f * wt));
+                                let px = baseX + disp;
+                                let density = Math.abs(Math.cos(2 * Math.PI * (baseX / lam - f * wt)));
+                                sk.fill(139, 92, 246, 100 + density * 155);
+                                sk.ellipse(px, H / 2, 8 + density * 6, H * 0.3);
+                            }
+                            sk.fill(236, 72, 153); sk.textSize(9); sk.textFont('Inter');
+                            sk.text('← rapatan →        ← regangan →', 60, H / 2 + 100);
+                        }
+                        // Wavelength label
+                        sk.stroke(255, 200, 0, 150); sk.strokeWeight(1);
+                        sk.line(40, H / 2 + A + 20, 40 + lam, H / 2 + A + 20);
+                        sk.fill(255, 200, 0); sk.noStroke(); sk.textSize(9); sk.text('λ', 40 + lam / 2, H / 2 + A + 34);
+                        // Amplitude label
+                        sk.stroke(255, 200, 0, 150);
+                        sk.line(10, H / 2, 10, H / 2 - A);
+                        sk.fill(255, 200, 0); sk.noStroke(); sk.textSize(9); sk.text('A', 2, H / 2 - A / 2);
+                    };
+                });
+            }
+            function waveDataUpdate() {
+                let f = parseFloat(document.getElementById('fwaveSl').value);
+                let lam = parseFloat(document.getElementById('lwaveSl').value);
+                document.getElementById('w-v').textContent = (lam * f).toFixed(0) + ' px/s';
+                document.getElementById('w-T').textContent = (1 / f).toFixed(2) + ' s';
+                document.getElementById('w-f').textContent = f + ' Hz';
+            }
+
+            // ── SUPERPOSISI ──
+            let skSuper = null, st = 0;
+            function initSuper() {
+                if (skSuper) skSuper.remove();
+                ['a1sSl', 'f1sSl', 'a2sSl', 'f2sSl'].forEach(id => {
+                    let dp = id.replace('Sl', '');
+                    document.getElementById(id).addEventListener('input', e => { document.getElementById(dp).textContent = e.target.value; });
+                });
+                skSuper = new p5(sk => {
+                    sk.setup = () => { let c = sk.createCanvas(540, 380); c.parent('box-super'); };
+                    sk.draw = () => {
+                        sk.background(5, 10, 26);
+                        const W = sk.width, H = sk.height;
+                        let A1 = parseFloat(document.getElementById('a1sSl').value);
+                        let f1 = parseFloat(document.getElementById('f1sSl').value);
+                        let A2 = parseFloat(document.getElementById('a2sSl').value);
+                        let f2 = parseFloat(document.getElementById('f2sSl').value);
+                        st += sk.deltaTime / 1000;
+                        const drawWave = (yBase, A, f, col, lam = 300) => {
+                            sk.stroke(col); sk.strokeWeight(1.5); sk.noFill(); sk.beginShape();
+                            for (let x = 0; x < W; x += 2) sk.vertex(x, yBase + A * Math.sin(2 * Math.PI * (x / lam - f * st)));
+                            sk.endShape();
+                        };
+                        const drawLabel = (y, txt, col) => { sk.fill(col); sk.noStroke(); sk.textSize(9); sk.textFont('Orbitron'); sk.text(txt, 8, y - 5); };
+                        drawWave(80, A1, f1, 'rgba(139,92,246,0.8)');
+                        drawLabel(80, 'y₁ (A=' + A1 + ', f=' + f1 + ')', '#8b5cf6');
+                        drawWave(200, A2, f2, 'rgba(236,72,153,0.8)');
+                        drawLabel(200, 'y₂ (A=' + A2 + ', f=' + f2 + ')', '#ec4899');
+                        // Superposition
+                        sk.stroke(0, 212, 255); sk.strokeWeight(2.5); sk.noFill(); sk.beginShape();
+                        for (let x = 0; x < W; x += 2) {
+                            let y1 = A1 * Math.sin(2 * Math.PI * (x / 300 - f1 * st));
+                            let y2 = A2 * Math.sin(2 * Math.PI * (x / 300 - f2 * st));
+                            sk.vertex(x, 310 + y1 + y2);
+                        }
+                        sk.endShape();
+                        drawLabel(310, 'y₁+y₂ (Superposisi)', '#00d4ff');
+                        sk.fill(30, 50, 80, 80); sk.noStroke(); sk.rect(0, 145, W, 15);
+                        sk.fill(30, 50, 80, 80); sk.rect(0, 262, W, 15);
+                    };
+                });
+            }
+
+            // ── DOPPLER ──
+            let skDoppler = null, dopplerSrcX = 100, dopplerWaves = [];
+            function initDoppler() {
+                if (skDoppler) skDoppler.remove();
+                ['f0dSl', 'vsdSl', 'vodSl'].forEach(id => {
+                    let dp = id.replace('Sl', '');
+                    document.getElementById(id).addEventListener('input', e => { document.getElementById(dp).textContent = e.target.value; dopplerUpdate(); });
+                });
+                dopplerUpdate();
+                skDoppler = new p5(sk => {
+                    let srcX = 150, timer = 0;
+                    sk.setup = () => { let c = sk.createCanvas(540, 300); c.parent('box-doppler'); dopplerWaves = []; };
+                    sk.draw = () => {
+                        sk.background(5, 10, 26);
+                        const W = sk.width, H = sk.height;
+                        let vs = parseFloat(document.getElementById('vsdSl').value) * 0.4;
+                        let f0 = parseFloat(document.getElementById('f0dSl').value);
+                        // Move source
+                        srcX += vs * sk.deltaTime / 1000;
+                        if (srcX > W + 40) srcX = 0; if (srcX < -40) srcX = W;
+                        // Emit waves
+                        timer += sk.deltaTime;
+                        let period = 1000 / f0 * 80;
+                        if (timer > period) { dopplerWaves.push({ cx: srcX, cy: H / 2, r: 0 }); timer = 0; }
+                        // Draw waves
+                        sk.noFill();
+                        for (let w of dopplerWaves) {
+                            w.r += 1.5;
+                            let alpha = sk.map(w.r, 0, 300, 200, 0);
+                            sk.stroke(139, 92, 246, alpha); sk.strokeWeight(1.5);
+                            sk.ellipse(w.cx, w.cy, w.r * 2, w.r * 2);
+                        }
+                        dopplerWaves = dopplerWaves.filter(w => w.r < 300);
+                        // Source
+                        sk.fill(245, 158, 11); sk.noStroke(); sk.ellipse(srcX, H / 2, 24, 24);
+                        sk.fill(245, 158, 11); sk.textSize(9); sk.textFont('Orbitron'); sk.text('🔊', srcX - 8, H / 2 + 4);
+                        // Observer
+                        sk.fill(34, 197, 94); sk.ellipse(W - 60, H / 2, 20, 20);
+                        sk.fill(34, 197, 94); sk.text('👂', W - 68, H / 2 + 4);
+                        // Labels
+                        sk.fill(200); sk.textSize(9); sk.textFont('Inter');
+                        sk.text('v꜀=' + document.getElementById('vsdSl').value + 'm/s', srcX - 20, H / 2 + 30);
+                        sk.fill(139, 92, 246); sk.textSize(10); sk.textFont('Orbitron');
+                        sk.text("f' = " + document.getElementById('d-fobs').textContent, W / 2 - 40, 30);
+                    };
+                });
+            }
+            function dopplerUpdate() {
+                let f0 = parseFloat(document.getElementById('f0dSl').value);
+                let vs = parseFloat(document.getElementById('vsdSl').value);
+                let vo = parseFloat(document.getElementById('vodSl').value);
+                let v = 340;
+                let fobs = f0 * (v + vo) / (v + vs);
+                document.getElementById('d-fobs').textContent = fobs.toFixed(0) + ' Hz';
+                document.getElementById('d-delta').textContent = (fobs - f0 > 0 ? '+' : '') + ((fobs - f0).toFixed(0)) + ' Hz';
+                let effectEl = document.getElementById('d-effect');
+                if (fobs > f0 + 5) { effectEl.textContent = 'MENDEKATI (↑ nada)'; effectEl.style.color = '#22c55e'; }
+                else if (fobs < f0 - 5) { effectEl.textContent = 'MENJAUH (↓ nada)'; effectEl.style.color = '#ef4444'; }
+                else { effectEl.textContent = 'TIDAK ADA'; effectEl.style.color = '#8b5cf6'; }
+            }
+
+            // ── CAHAYA ──
+            let skCahaya = null;
+            function initCahaya() {
+                if (skCahaya) skCahaya.remove();
+                ['dcSl', 'lcSl', 'llSl'].forEach(id => {
+                    let dp = id.replace('Sl', '');
+                    document.getElementById(id).addEventListener('input', e => { document.getElementById(dp).textContent = e.target.value; cahayaUpdate(); });
+                });
+                cahayaUpdate();
+                skCahaya = new p5(sk => {
+                    sk.setup = () => { let c = sk.createCanvas(540, 360); c.parent('box-cahaya'); sk.colorMode(sk.HSB, 360, 100, 100, 100); };
+                    sk.draw = () => {
+                        sk.background(5, 10, 26);
+                        const W = sk.width, H = sk.height;
+                        let lam_nm = parseFloat(document.getElementById('lcSl').value);
+                        let hue = sk.map(lam_nm, 380, 780, 270, 0); // violet to red
+                        // Slits
+                        let slitX = 100, screenX = W - 40;
+                        sk.fill(100, 0, 100, 100); sk.stroke(180, 0, 180, 200); sk.strokeWeight(1);
+                        sk.rect(slitX - 5, 0, 10, H / 2 - 20, 2);
+                        sk.rect(slitX - 5, H / 2 + 20, 10, H / 2 - 20, 2);
+                        sk.fill(255, 100, 100, 80); sk.stroke(255, 100, 100, 200); sk.strokeWeight(3);
+                        sk.rect(screenX, 0, 8, H, 2);
+                        // Light rays
+                        for (let m = -3; m <= 3; m++) {
+                            let d = parseFloat(document.getElementById('dcSl').value);
+                            let lam = lam_nm * 1e-6;
+                            let L = parseFloat(document.getElementById('llSl').value);
+                            let y_m = m * lam * L / d * 1000; // in mm
+                            let yScreen = H / 2 + y_m * 30;
+                            if (yScreen < 0 || yScreen > H) continue;
+                            let bright = Math.abs(m) === 0 ? 1 : 0.7 / Math.abs(m);
+                            sk.stroke(hue, 80, 100, bright * 80); sk.strokeWeight(1);
+                            sk.line(slitX + 5, H / 2 - 15, screenX, yScreen);
+                            sk.line(slitX + 5, H / 2 + 15, screenX, yScreen);
+                            // Fringe on screen
+                            sk.fill(hue, 90, 100, bright * 200); sk.noStroke();
+                            sk.ellipse(screenX + 4, yScreen, 6, 18);
+                            sk.fill(255, 100, 100, 100); sk.textSize(8); sk.textFont('Orbitron');
+                            if (m >= 0) sk.text('m=' + m, screenX + 12, yScreen + 3);
+                        }
+                        // Labels
+                        sk.fill(50, 0, 100, 200); sk.noStroke(); sk.textSize(9); sk.textFont('Orbitron');
+                        sk.text('CELAH', slitX - 16, H / 2);
+                        sk.fill(255); sk.text('LAYAR', screenX - 5, 16);
+                        sk.fill(hue, 80, 100, 200); sk.textSize(10);
+                        sk.text('λ=' + lam_nm + 'nm', 20, 20);
+                    };
+                });
+            }
+            function cahayaUpdate() {
+                let d = parseFloat(document.getElementById('dcSl').value) * 1e-3;
+                let lam = parseFloat(document.getElementById('lcSl').value) * 1e-9;
+                let L = parseFloat(document.getElementById('llSl').value);
+                let dy = lam * L / d * 1000;
+                document.getElementById('c-dy').textContent = dy.toFixed(2) + ' mm';
+                document.getElementById('c-y1').textContent = dy.toFixed(2) + ' mm';
+                let nm = parseFloat(document.getElementById('lcSl').value);
+                let colors = ['Ungu', 'Ungu-Biru', 'Biru', 'Cyan', 'Hijau', 'Kuning-Hijau', 'Kuning', 'Jingga', 'Merah'];
+                let ci = Math.floor((nm - 380) / (780 - 380) * 8);
+                document.getElementById('c-color').textContent = colors[Math.min(ci, 8)];
+            }
+
+            window.addEventListener('DOMContentLoaded', () => { initWave(); });
+            // ── FULLSCREEN ──
+            function toggleFS() {
+                if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => { });
+                else document.exitFullscreen();
+            }
+            document.addEventListener('fullscreenchange', () => {
+                const isFS = !!document.fullscreenElement;
+                const btn = document.getElementById('fsBtn');
+                if (btn) { btn.textContent = isFS ? '✕' : '⛶'; btn.title = isFS ? 'Keluar Layar Penuh' : 'Layar Penuh'; }
+            });
+        </script>
+</body>
+
+</html>

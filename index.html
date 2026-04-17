@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SimFisika – Lab Interaktif Fisika</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #050a1a;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        #defaultCanvas0 {
+            display: block;
+        }
+
+        #ui {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .menu-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: min(800px, 95vw);
+            pointer-events: all;
+        }
+
+        .menu-title {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .menu-title h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(24px, 4vw, 48px);
+            font-weight: 900;
+            background: linear-gradient(135deg, #00d4ff, #7c3aed, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+            text-shadow: none;
+        }
+
+        .menu-title p {
+            color: #94a3b8;
+            font-size: clamp(11px, 1.5vw, 14px);
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #7c3aed, #00d4ff, transparent);
+            margin: 16px 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px 16px;
+            cursor: pointer;
+            transition: all .3s ease;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--glow);
+            opacity: 0;
+            transition: opacity .3s;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+
+        .card-icon {
+            font-size: 36px;
+            line-height: 1;
+        }
+
+        .card-num {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            color: #64748b;
+            letter-spacing: 2px;
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(11px, 1.8vw, 14px);
+            font-weight: 700;
+            color: #e2e8f0;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .card-desc {
+            font-size: clamp(9px, 1.2vw, 11px);
+            color: #64748b;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent);
+            color: #050a1a;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 20px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 16px;
+            color: #334155;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+
+        @media(max-width:600px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="bgCanvas" style="position:fixed;top:0;left:0;z-index:0;"></canvas>
+    <div id="ui">
+        <div class="menu-container">
+            <div class="menu-title">
+                <h1>⚛ SIM FISIKA</h1>
+                <p>LAB INTERAKTIF · SIMULASI SAINS · SMA / FASE F</p>
+            </div>
+            <div class="divider"></div>
+            <div class="grid">
+
+                <a class="card" href="mekanika.html" id="c1"
+                    style="--accent:#00d4ff;--glow:linear-gradient(135deg,rgba(0,212,255,.08),transparent);--shadow:rgba(0,212,255,.3);">
+                    <div class="card-badge">LAB 1</div>
+                    <div class="card-icon">🚀</div>
+                    <div class="card-num">01 · MEKANIKA</div>
+                    <div class="card-title">MEKANIKA</div>
+                    <div class="card-desc">Gerak, Gaya & Hukum Newton · Proyektil · Rekayasa Struktur</div>
+                </a>
+
+                <a class="card" href="fluida.html" id="c2"
+                    style="--accent:#06b6d4;--glow:linear-gradient(135deg,rgba(6,182,212,.08),transparent);--shadow:rgba(6,182,212,.3);">
+                    <div class="card-badge">LAB 2</div>
+                    <div class="card-icon">💧</div>
+                    <div class="card-num">02 · FLUIDA</div>
+                    <div class="card-title">FLUIDA</div>
+                    <div class="card-desc">Tekanan · Archimedes · Bernoulli · Aplikasi Kehidupan</div>
+                </a>
+
+                <a class="card" href="termodinamika.html" id="c3"
+                    style="--accent:#f59e0b;--glow:linear-gradient(135deg,rgba(245,158,11,.08),transparent);--shadow:rgba(245,158,11,.3);">
+                    <div class="card-badge">LAB 3</div>
+                    <div class="card-icon">🔥</div>
+                    <div class="card-num">03 · TERMODINAMIKA</div>
+                    <div class="card-title">TERMODINAMIKA</div>
+                    <div class="card-desc">Kalor · Siklus Carnot · Perubahan Iklim</div>
+                </a>
+
+                <a class="card" href="gelombang.html" id="c4"
+                    style="--accent:#8b5cf6;--glow:linear-gradient(135deg,rgba(139,92,246,.08),transparent);--shadow:rgba(139,92,246,.3);">
+                    <div class="card-badge">LAB 4</div>
+                    <div class="card-icon">〰️</div>
+                    <div class="card-num">04 · GELOMBANG</div>
+                    <div class="card-title">GELOMBANG</div>
+                    <div class="card-desc">Gelombang Mekanik & EM · Bunyi · Cahaya · Doppler</div>
+                </a>
+
+                <a class="card" href="listrik.html" id="c5"
+                    style="--accent:#f97316;--glow:linear-gradient(135deg,rgba(249,115,22,.08),transparent);--shadow:rgba(249,115,22,.3);">
+                    <div class="card-badge">LAB 5</div>
+                    <div class="card-icon">⚡</div>
+                    <div class="card-num">05 · LISTRIK & MAGNET</div>
+                    <div class="card-title">LISTRIK & MAGNET</div>
+                    <div class="card-desc">Rangkaian Listrik · Induksi · Elektromagnetik</div>
+                </a>
+
+                <a class="card" href="fisika-modern.html" id="c6"
+                    style="--accent:#ec4899;--glow:linear-gradient(135deg,rgba(236,72,153,.08),transparent);--shadow:rgba(236,72,153,.3);">
+                    <div class="card-badge">LAB 6</div>
+                    <div class="card-icon">⚛️</div>
+                    <div class="card-num">06 · FISIKA MODERN</div>
+                    <div class="card-title">FISIKA MODERN</div>
+                    <div class="card-desc">Relativitas · Kuantum · Nuklir · Teknologi Masa Kini</div>
+                </a>
+
+            </div>
+            <div class="footer">© 2026 SimFisika · Dibuat untuk Pembelajaran Sains Interaktif</div>
+        </div>
+    </div>
+
+    <script>
+        // Particle background via p5.js
+        new p5(function (sk) {
+            let stars = [], nebula = [], t = 0;
+            sk.setup = function () {
+                let c = sk.createCanvas(sk.windowWidth, sk.windowHeight);
+                c.parent('bgCanvas');
+                c.style('position', 'fixed');
+                sk.colorMode(sk.HSB, 360, 100, 100, 100);
+                for (let i = 0; i < 200; i++) stars.push({ x: sk.random(sk.width), y: sk.random(sk.height), s: sk.random(.5, 2.5), spd: sk.random(.05, .3), h: sk.random(180, 280) });
+                for (let i = 0; i < 6; i++) nebula.push({ x: sk.random(sk.width), y: sk.random(sk.height), r: sk.random(80, 200), h: sk.random([200, 260, 300, 40]) });
+            };
+            sk.draw = function () {
+                sk.background(220, 80, 8);
+                t += 0.005;
+                // nebula blobs
+                sk.noStroke();
+                for (let n of nebula) {
+                    sk.fill(n.h, 70, 50, 6);
+                    sk.ellipse(n.x + sk.sin(t) * 20, n.y + sk.cos(t) * 15, n.r * 2, n.r * 1.5);
+                }
+                // star particles
+                for (let s of stars) {
+                    let flicker = sk.noise(s.x * .01, s.y * .01, t * s.spd);
+                    sk.fill(s.h, 20, 100, flicker * 80 + 20);
+                    sk.ellipse(s.x, s.y, s.s + flicker * 1.5);
+                    s.y += s.spd * .2;
+                    if (s.y > sk.height) s.y = 0;
+                }
+                // scan lines effect
+                sk.fill(0, 0, 0, 3);
+                for (let y = 0; y < sk.height; y += 4) sk.rect(0, y, sk.width, 2);
+            };
+            sk.windowResized = function () { sk.resizeCanvas(sk.windowWidth, sk.windowHeight); };
+        }, 'bgCanvas');
+    </script>
+</body>
+
+</html>

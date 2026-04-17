@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Termodinamika – SimFisika</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #050a1a;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, .4);
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        header a:hover {
+            color: #f59e0b;
+        }
+
+        header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, .2);
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            color: #64748b;
+            background: transparent;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            background: rgba(245, 158, 11, .15);
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        .lab {
+            display: none;
+            padding: 24px;
+            gap: 20px;
+            flex-direction: column;
+        }
+
+        .lab.active {
+            display: flex;
+        }
+
+        .sim-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 20px;
+            align-items: stretch;
+            height: calc(100vh - 140px);
+            min-height: 500px;
+        }
+
+        @media(max-width:768px) {
+            .sim-wrapper {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        .canvas-box {
+            background: #050a1a;
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            color: #f59e0b;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-size: 11px;
+            color: #94a3b8;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: #f59e0b;
+            cursor: pointer;
+        }
+
+        .val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: #e2e8f0;
+            float: right;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+        }
+
+        .data-row span:first-child {
+            color: #64748b;
+        }
+
+        .data-row span:last-child {
+            font-family: 'Orbitron', sans-serif;
+            color: #f59e0b;
+            font-size: 11px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            transition: all .2s;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .btn-p {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: #050a1a;
+        }
+
+        .btn-s {
+            background: rgba(255, 255, 255, .08);
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, .12);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .info-box {
+            background: rgba(245, 158, 11, .05);
+            border: 1px solid rgba(245, 158, 11, .2);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #94a3b8;
+        }
+
+        .info-box strong {
+            color: #f59e0b;
+        }
+
+        .formula {
+            background: rgba(239, 68, 68, .1);
+            border: 1px solid rgba(239, 68, 68, .3);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: #fca5a5;
+            margin: 6px 0;
+        }
+
+        /* Fullscreen */
+        #fsBtn {
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .15);
+            color: #94a3b8;
+            border-radius: 8px;
+            padding: 5px 12px;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            transition: all .2s;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        #fsBtn:hover {
+            background: rgba(255, 255, 255, .18);
+            color: #e2e8f0;
+        }
+
+        :fullscreen #fsBtn,
+        :-webkit-full-screen #fsBtn {
+            color: #00d4ff;
+            border-color: #00d4ff;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <a href="index.html">← MENU</a>
+        <h1>🔥 TERMODINAMIKA</h1>
+        <span style="color:#334155;font-size:11px;">LAB INTERAKTIF FISIKA</span>
+        <button id="fsBtn" onclick="toggleFS()" title="Layar Penuh">⛶</button>
+    </header>
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('kalor')">Kalor & Suhu</div>
+        <div class="tab" onclick="switchTab('gas')">Hukum Gas Ideal</div>
+        <div class="tab" onclick="switchTab('carnot')">Siklus Carnot</div>
+        <div class="tab" onclick="switchTab('iklim')">Perubahan Iklim</div>
+    </div>
+
+    <!-- KALOR -->
+    <div id="tab-kalor" class="lab active">
+        <div class="sim-wrapper">
+            <div class="canvas-box" id="box-kalor"></div>
+            <div class="panel">
+                <div class="card">
+                    <h3>PARAMETER</h3>
+                    <label>Material</label>
+                    <select id="matKalor"
+                        style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:6px;font-size:12px;"
+                        onchange="kalorUpdate()">
+                        <option value="4186">Air (c=4186 J/kg°C)</option>
+                        <option value="900">Aluminium (c=900)</option>
+                        <option value="450">Besi (c=450)</option>
+                        <option value="386">Tembaga (c=386)</option>
+                        <option value="129">Emas (c=129)</option>
+                    </select>
+                    <label style="margin-top:8px">Massa (kg) <span class="val" id="mkval">1</span></label>
+                    <input type="range" id="mksl" min="0.1" max="5" value="1" step="0.1" />
+                    <label style="margin-top:8px">Kalor (J) <span class="val" id="qval">10000</span></label>
+                    <input type="range" id="qsl" min="1000" max="100000" value="10000" step="1000" />
+                    <div class="btn-row"><button class="btn btn-p" onclick="kalorUpdate()">↻ HITUNG</button></div>
+                </div>
+                <div class="card">
+                    <h3>HASIL</h3>
+                    <div class="data-row"><span>ΔT</span><span id="kal-dt">0 °C</span></div>
+                    <div class="data-row"><span>T Akhir (T₀=25°C)</span><span id="kal-tf">0 °C</span></div>
+                    <div class="data-row"><span>Kalor (Q)</span><span id="kal-q">0 J</span></div>
+                </div>
+                <div class="card">
+                    <h3>RUMUS</h3>
+                    <div class="formula">Q = m · c · ΔT</div>
+                    <div class="info-box"><strong>Kapasitas Kalor Jenis (c)</strong> menentukan seberapa besar suhu
+                        benda naik per joule kalor yang diterima per kg massa.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAS IDEAL -->
+    <div id="tab-gas" class="lab">
+        <div class="sim-wrapper">
+            <div class="canvas-box" id="box-gas"></div>
+            <div class="panel">
+                <div class="card">
+                    <h3>VARIABEL GAS</h3>
+                    <label>Tekanan P (atm) <span class="val" id="pgasval">1</span></label>
+                    <input type="range" id="pgassl" min="0.5" max="5" value="1" step="0.1" />
+                    <label style="margin-top:8px">Suhu T (K) <span class="val" id="tgasval">300</span></label>
+                    <input type="range" id="tgassl" min="100" max="1000" value="300" step="10" />
+                    <label style="margin-top:8px">Mol (n) <span class="val" id="ngasval">1</span></label>
+                    <input type="range" id="ngassl" min="0.5" max="5" value="1" step="0.5" />
+                    <div class="btn-row"><button class="btn btn-p" onclick="gasUpdate()">↻ HITUNG</button></div>
+                </div>
+                <div class="card">
+                    <h3>HASIL</h3>
+                    <div class="data-row"><span>Volume (L)</span><span id="gas-v">24.6 L</span></div>
+                    <div class="data-row"><span>Volume (m³)</span><span id="gas-vm">0.0246 m³</span></div>
+                    <div class="data-row"><span>Energi Kinetik</span><span id="gas-ek">0 J</span></div>
+                </div>
+                <div class="card">
+                    <h3>RUMUS</h3>
+                    <div class="formula">PV = nRT</div>
+                    <div class="formula">Eₖ = 3/2 · nRT</div>
+                    <div class="info-box">R = 8.314 J/(mol·K)<br /><strong>Hukum Boyle:</strong> P inversely
+                        proportional V<br /><strong>Hukum Charles:</strong> V proportional T</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARNOT -->
+    <div id="tab-carnot" class="lab">
+        <div class="sim-wrapper">
+            <div class="canvas-box" id="box-carnot"></div>
+            <div class="panel">
+                <div class="card">
+                    <h3>MESIN CARNOT</h3>
+                    <label>T Tinggi (Tₕ) K <span class="val" id="thval">600</span></label>
+                    <input type="range" id="thsl" min="400" max="1200" value="600" step="10" />
+                    <label style="margin-top:8px">T Rendah (T꜀) K <span class="val" id="tcval">300</span></label>
+                    <input type="range" id="tcsl" min="100" max="400" value="300" step="10" />
+                    <div class="btn-row"><button class="btn btn-p" onclick="carnotUpdate()">↻ HITUNG</button></div>
+                </div>
+                <div class="card">
+                    <h3>EFISIENSI</h3>
+                    <div class="data-row"><span>η Carnot</span><span id="car-eff">50%</span></div>
+                    <div class="data-row"><span>W/Qₕ</span><span id="car-w">0</span></div>
+                    <div class="data-row"><span>Qc/Qh</span><span id="car-qc">0.5</span></div>
+                </div>
+                <div class="card">
+                    <h3>RUMUS</h3>
+                    <div class="formula">η = 1 − T꜀/Tₕ</div>
+                    <div class="info-box"><strong>Siklus Carnot</strong> adalah mesin panas paling efisien — tidak ada
+                        mesin nyata bisa melampaui efisiensi Carnot.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PERUBAHAN IKLIM -->
+    <div id="tab-iklim" class="lab">
+        <div class="sim-wrapper">
+            <div class="canvas-box" id="box-iklim"></div>
+            <div class="panel">
+                <div class="card">
+                    <h3>SKENARIO</h3>
+                    <label>Emisi CO₂ (GtCO₂/tahun) <span class="val" id="co2val">37</span></label>
+                    <input type="range" id="co2sl" min="0" max="60" value="37" step="1" />
+                    <label style="margin-top:8px">Tutupan Hutan (%) <span class="val" id="forestval">30</span></label>
+                    <input type="range" id="forestsl" min="0" max="70" value="30" step="5" />
+                    <label style="margin-top:8px">Tahun Proyeksi</label>
+                    <select id="yearSel"
+                        style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:6px;font-size:12px;">
+                        <option value="2050">2050</option>
+                        <option value="2100">2100</option>
+                    </select>
+                    <div class="btn-row"><button class="btn btn-p" onclick="ikimUpdate()">↻ PROYEKSI</button></div>
+                </div>
+                <div class="card">
+                    <h3>DAMPAK</h3>
+                    <div class="data-row"><span>ΔT Proyeksi</span><span id="clim-dt">+1.5°C</span></div>
+                    <div class="data-row"><span>Kenaikan Air Laut</span><span id="clim-sl">20 cm</span></div>
+                    <div class="data-row"><span>Level Risiko</span><span id="clim-risk"
+                            style="color:#22c55e">RENDAH</span></div>
+                </div>
+                <div class="card">
+                    <h3>KONSEP FISIKA</h3>
+                    <div class="info-box"><strong>Efek Rumah Kaca:</strong> Gas CO₂ menyerap radiasi inframerah dari
+                        Bumi, menaikkan suhu atmosfer.<br /><br /><strong>Radiasi Stefan-Boltzmann:</strong><br /><span
+                            style="font-family:Orbitron;font-size:10px;">P = σεAT⁴</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(id) {
+            document.querySelectorAll('.lab').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + id).classList.add('active');
+            event.target.classList.add('active');
+            if (id === 'kalor') initKalor();
+            if (id === 'gas') initGas();
+            if (id === 'carnot') initCarnot();
+            if (id === 'iklim') initIklim();
+        }
+
+        // ── KALOR ──
+        let skKalor = null;
+        function initKalor() {
+            if (skKalor) skKalor.remove();
+            document.getElementById('mksl').addEventListener('input', e => { document.getElementById('mkval').textContent = e.target.value; kalorUpdate(); });
+            document.getElementById('qsl').addEventListener('input', e => { document.getElementById('qval').textContent = e.target.value; kalorUpdate(); });
+            kalorUpdate();
+            skKalor = new p5(sk => {
+                let particles = [];
+                for (let i = 0; i < 60; i++) particles.push({ x: sk.random(20, 160), y: sk.random(20, 180), vx: sk.random(-1, 1), vy: sk.random(-1, 1) });
+                sk.setup = () => { let c = sk.createCanvas(540, 360); c.parent('box-kalor'); };
+                sk.draw = () => {
+                    sk.background(5, 10, 26);
+                    const W = sk.width, H = sk.height;
+                    let m = parseFloat(document.getElementById('mksl').value);
+                    let Q = parseFloat(document.getElementById('qsl').value);
+                    let c = parseFloat(document.getElementById('matKalor').value);
+                    let dT = Q / (m * c);
+                    let T = 25 + dT;
+                    let heat = Math.min(dT / 100, 1);
+                    let r = sk.map(heat, 0, 1, 50, 255), g2 = sk.map(heat, 0, 1, 100, 80), b = sk.map(heat, 0, 1, 200, 20);
+                    // Container
+                    sk.fill(r, g2, b, 40); sk.stroke(r, g2, b); sk.strokeWeight(2);
+                    sk.rect(40, 40, 200, 220, 8);
+                    // Particles
+                    let spd = 1 + heat * 4;
+                    for (let p of particles) {
+                        p.x += p.vx * spd; p.y += p.vy * spd;
+                        if (p.x < 42 || p.x > 238) { p.vx *= -1; }
+                        if (p.y < 42 || p.y > 258) { p.vy *= -1; }
+                        sk.fill(r, g2, b, 180); sk.noStroke(); sk.ellipse(p.x, p.y, 5, 5);
+                    }
+                    // Thermometer
+                    let thermH = sk.map(T, 25, 200, 0, 180);
+                    sk.stroke(255); sk.strokeWeight(1); sk.noFill(); sk.rect(280, 40, 24, 200, 40);
+                    sk.fill(r, g2, b); sk.noStroke(); sk.rect(282, 240 - thermH, 20, thermH + 20, 30);
+                    sk.ellipse(292, 250, 28, 28);
+                    // Labels
+                    sk.fill(255); sk.noStroke(); sk.textSize(11); sk.textFont('Orbitron');
+                    sk.text(T.toFixed(1) + '°C', 270, 30);
+                    sk.fill(r, g2, b); sk.textSize(10);
+                    sk.text('ΔT = ' + dT.toFixed(1) + '°C', W / 2 - 20, H / 2);
+                    sk.text('Q = ' + Q.toFixed(0) + ' J', W / 2 - 20, H / 2 + 18);
+                    // Temp scale
+                    sk.fill(100); sk.textSize(8); sk.textFont('Inter');
+                    for (let i = 0; i <= 4; i++) {
+                        let y = 240 - i * 45; sk.text((i * 50 + 25) + '°', 308, y + 4); sk.stroke(50); sk.line(306, y, 310, y);
+                    }
+                };
+            });
+        }
+        function kalorUpdate() {
+            let m = parseFloat(document.getElementById('mksl').value);
+            let Q = parseFloat(document.getElementById('qsl').value);
+            let c = parseFloat(document.getElementById('matKalor').value);
+            let dT = Q / (m * c);
+            document.getElementById('kal-dt').textContent = dT.toFixed(2) + ' °C';
+            document.getElementById('kal-tf').textContent = (25 + dT).toFixed(2) + ' °C';
+            document.getElementById('kal-q').textContent = Q + ' J';
+        }
+
+        // ── GAS IDEAL ──
+        let skGas = null;
+        function initGas() {
+            if (skGas) skGas.remove();
+            ['pgassl', 'tgassl', 'ngassl'].forEach(id => {
+                let dp = id.replace('sl', 'val');
+                document.getElementById(id).addEventListener('input', e => { document.getElementById(dp).textContent = e.target.value; gasUpdate(); });
+            });
+            gasUpdate();
+            skGas = new p5(sk => {
+                let gparticles = [];
+                for (let i = 0; i < 40; i++) gparticles.push({ x: sk.random(60, 300), y: sk.random(60, 280), vx: sk.random(-2, 2) || 1, vy: sk.random(-2, 2) || 1 });
+                sk.setup = () => { let c = sk.createCanvas(540, 360); c.parent('box-gas'); };
+                sk.draw = () => {
+                    sk.background(5, 10, 26);
+                    const W = sk.width, H = sk.height;
+                    let P = parseFloat(document.getElementById('pgassl').value);
+                    let T = parseFloat(document.getElementById('tgassl').value);
+                    let n = parseFloat(document.getElementById('ngassl').value);
+                    let V_m3 = (n * 8.314 * T) / (P * 101325);
+                    let side = Math.min(Math.sqrt(V_m3) * 120 + 100, 260);
+                    let bx = (W - side) / 2, by = (H - side) / 2;
+                    // Box (piston-style)
+                    let heat = T / 1000;
+                    let gr = sk.map(heat, 0, 1, 50, 255), gg = sk.map(heat, 0, 1, 100, 80), gb = sk.map(heat, 0, 1, 200, 20);
+                    sk.fill(gr, gg, gb, 20); sk.stroke(gr, gg, gb, 180); sk.strokeWeight(3);
+                    sk.rect(bx, by, side, side, 4);
+                    // Piston top
+                    sk.fill(100); sk.stroke(150); sk.strokeWeight(2); sk.rect(bx, by - 12, side, 12, 2);
+                    sk.fill(200); sk.noStroke(); sk.textSize(9); sk.textFont('Orbitron'); sk.text('PISTON  P=' + P + 'atm', bx + 8, by - 2);
+                    // Particles
+                    let spd = Math.sqrt(T / 300) * 2;
+                    for (let p of gparticles) {
+                        p.x += p.vx * spd; p.y += p.vy * spd;
+                        if (p.x < bx + 4 || p.x > bx + side - 4) p.vx *= -1;
+                        if (p.y < by + 4 || p.y > by + side - 4) p.vy *= -1;
+                        p.x = Math.max(bx + 4, Math.min(bx + side - 4, p.x));
+                        p.y = Math.max(by + 4, Math.min(by + side - 4, p.y));
+                        sk.fill(gr, gg, gb, 200); sk.noStroke(); sk.ellipse(p.x, p.y, 6, 6);
+                    }
+                    sk.fill(255); sk.noStroke(); sk.textSize(10); sk.textFont('Orbitron');
+                    sk.text('T=' + T + 'K', bx, by + side + 20);
+                    sk.text('V=' + ((V_m3) * 1000).toFixed(1) + 'L', bx + side / 2 - 20, by + side + 20);
+                };
+            });
+        }
+        function gasUpdate() {
+            let P = parseFloat(document.getElementById('pgassl').value) * 101325;
+            let T = parseFloat(document.getElementById('tgassl').value);
+            let n = parseFloat(document.getElementById('ngassl').value);
+            let V = n * 8.314 * T / P;
+            document.getElementById('gas-v').textContent = (V * 1000).toFixed(2) + ' L';
+            document.getElementById('gas-vm').textContent = V.toFixed(4) + ' m³';
+            document.getElementById('gas-ek').textContent = (1.5 * n * 8.314 * T).toFixed(0) + ' J';
+        }
+
+        // ── CARNOT ──
+        let skCarnot = null, carnotAngle = 0;
+        function initCarnot() {
+            if (skCarnot) skCarnot.remove();
+            ['thsl', 'tcsl'].forEach(id => {
+                let dp = id.replace('sl', 'val');
+                document.getElementById(id).addEventListener('input', e => { document.getElementById(dp).textContent = e.target.value; carnotUpdate(); });
+            });
+            carnotUpdate();
+            skCarnot = new p5(sk => {
+                sk.setup = () => { let c = sk.createCanvas(540, 360); c.parent('box-carnot'); };
+                sk.draw = () => {
+                    sk.background(5, 10, 26);
+                    const W = sk.width, H = sk.height;
+                    let Th = parseFloat(document.getElementById('thsl').value);
+                    let Tc = parseFloat(document.getElementById('tcsl').value);
+                    let eff = Math.max(0, 1 - Tc / Th);
+                    carnotAngle += 0.02;
+                    // Hot reservoir
+                    sk.fill(239, 68, 68, 80); sk.stroke(239, 68, 68); sk.strokeWeight(2);
+                    sk.rect(20, 20, W - 40, 60, 8);
+                    sk.fill(239, 68, 68); sk.noStroke(); sk.textSize(11); sk.textFont('Orbitron');
+                    sk.text('🔥 RESERVOIR PANAS  Tₕ = ' + Th + ' K', 30, 58);
+                    // Cold reservoir
+                    sk.fill(6, 182, 212, 80); sk.stroke(6, 182, 212); sk.strokeWeight(2);
+                    sk.rect(20, H - 90, W - 40, 60, 8);
+                    sk.fill(6, 182, 212); sk.noStroke();
+                    sk.text('❄ RESERVOIR DINGIN  T꜀ = ' + Tc + ' K', 30, H - 48);
+                    // Engine block
+                    sk.fill(50, 60, 80); sk.stroke(150); sk.strokeWeight(2);
+                    sk.rect(W / 2 - 50, H / 2 - 45, 100, 90, 8);
+                    // Spinning crank
+                    sk.translate(W / 2, H / 2);
+                    sk.stroke(245, 158, 11); sk.strokeWeight(3);
+                    sk.rotate(carnotAngle);
+                    sk.line(0, 0, 30, 0); sk.ellipse(30, 0, 12, 12);
+                    sk.resetMatrix();
+                    sk.fill(245, 158, 11); sk.noStroke(); sk.textSize(10);
+                    sk.text('⚙ MESIN', W / 2 - 25, H / 2 + 4);
+                    // Qh arrow
+                    sk.stroke(239, 68, 68); sk.strokeWeight(3); sk.fill(239, 68, 68);
+                    sk.line(W / 2, 80, W / 2, H / 2 - 50);
+                    sk.triangle(W / 2 - 5, H / 2 - 50, W / 2 + 5, H / 2 - 50, W / 2, H / 2 - 38);
+                    sk.fill(239, 68, 68); sk.noStroke(); sk.textSize(9); sk.text('Qₕ', W / 2 + 6, 130);
+                    // W arrow
+                    sk.stroke(245, 158, 11); sk.strokeWeight(3);
+                    sk.line(W / 2 + 55, H / 2, W + 20, H / 2);
+                    sk.fill(245, 158, 11); sk.noStroke();
+                    sk.text('W = η·Qₕ', W / 2 + 60, H / 2 - 6);
+                    // Qc arrow
+                    sk.stroke(6, 182, 212); sk.strokeWeight(3); sk.fill(6, 182, 212);
+                    sk.line(W / 2, H / 2 + 50, W / 2, H - 92);
+                    sk.triangle(W / 2 - 5, H - 92, W / 2 + 5, H - 92, W / 2, H - 80);
+                    sk.fill(6, 182, 212); sk.noStroke(); sk.textSize(9); sk.text('Q꜀', W / 2 + 6, H - 130);
+                    // Efficiency display
+                    sk.fill(0, 0, 0, 160); sk.rect(W - 130, H / 2 - 30, 120, 60, 8);
+                    sk.fill(245, 158, 11); sk.textSize(12); sk.textFont('Orbitron');
+                    sk.text('η = ' + (eff * 100).toFixed(1) + '%', W - 120, H / 2 + 6);
+                };
+            });
+        }
+        function carnotUpdate() {
+            let Th = parseFloat(document.getElementById('thsl').value);
+            let Tc = parseFloat(document.getElementById('tcsl').value);
+            let eff = Math.max(0, 1 - Tc / Th);
+            document.getElementById('car-eff').textContent = (eff * 100).toFixed(1) + '%';
+            document.getElementById('car-w').textContent = eff.toFixed(3);
+            document.getElementById('car-qc').textContent = (Tc / Th).toFixed(3);
+        }
+
+        // ── IKLIM ──
+        let skIklim = null, years = [], temps = [];
+        function initIklim() {
+            if (skIklim) skIklim.remove();
+            ['co2sl', 'forestsl'].forEach(id => {
+                let dp = id.replace('sl', 'val');
+                document.getElementById(id).addEventListener('input', e => { document.getElementById(dp).textContent = e.target.value; });
+            });
+            ikimUpdate();
+            skIklim = new p5(sk => {
+                sk.setup = () => { let c = sk.createCanvas(540, 360); c.parent('box-iklim'); };
+                sk.draw = () => {
+                    sk.background(5, 10, 26);
+                    const W = sk.width, H = sk.height;
+                    // Draw Earth cross-section
+                    let earthR = 90, cx = W / 2, cy = H / 2;
+                    let co2 = parseFloat(document.getElementById('co2sl').value);
+                    let forestPct = parseFloat(document.getElementById('forestsl').value) / 100;
+                    let netCO2 = co2 * (1 - forestPct * .3);
+                    let heat = Math.min(netCO2 / 60, 1);
+                    // Atmosphere glow
+                    for (let r = earthR + 50; r > earthR; r -= 5) {
+                        let a = sk.map(r, earthR, earthR + 50, 80, 0);
+                        let hr = sk.map(heat, 0, 1, 0, 30);
+                        sk.fill(255, 100 + hr * 5, 0, a * heat);
+                        sk.noStroke(); sk.ellipse(cx, cy, r * 2, r * 2);
+                    }
+                    // Earth
+                    sk.fill(30, 80, 50); sk.noStroke(); sk.ellipse(cx, cy, earthR * 2, earthR * 2);
+                    // Ocean
+                    sk.fill(6, 100, 180);
+                    sk.arc(cx, cy, earthR * 2, earthR * 2, 0.3, 3.0);
+                    sk.arc(cx, cy, earthR * 2, earthR * 2, 3.5, 5.8);
+                    // Forest coverage
+                    sk.fill(34, 197, 94, forestPct * 200);
+                    sk.arc(cx, cy, earthR * 2, earthR * 2, -1.0, 0.3);
+                    // Ice caps
+                    let iceSize = 20 * (1 - heat * .6);
+                    sk.fill(220, 240, 255); sk.ellipse(cx, cy - earthR + iceSize / 2, 50 * Math.max(0.1, 1 - heat * .5), iceSize);
+                    sk.ellipse(cx, cy + earthR - iceSize / 2, 50 * Math.max(0.1, 1 - heat * .5), iceSize);
+                    // CO2 particles floating
+                    sk.fill(245, 158, 11, 60 + heat * 100);
+                    for (let i = 0; i < Math.round(netCO2 / 3); i++) {
+                        let a = (sk.frameCount * .5 + i * 30) * Math.PI / 180;
+                        let r = earthR + 15 + i * 2 % 20;
+                        sk.ellipse(cx + Math.cos(a + i) * r, cy + Math.sin(a + i) * r, 4, 4);
+                    }
+                    // Labels
+                    sk.fill(255); sk.noStroke(); sk.textSize(10); sk.textFont('Orbitron');
+                    sk.text('CO₂: ' + co2 + ' Gt/yr', 20, 24);
+                    sk.fill(34, 197, 94); sk.text('HUTAN: ' + (forestPct * 100).toFixed(0) + '%', 20, 40);
+                    sk.fill(heat > 0.6 ? sk.color(239, 68, 68) : sk.color(245, 158, 11)); sk.text('NET CO₂: ' + netCO2.toFixed(0) + ' Gt', 20, 56);
+                    // Sea level indicator
+                    sk.fill(6, 182, 212, 120); sk.noStroke();
+                    let slRise = heat * 80;
+                    sk.rect(W - 40, H - 50 - slRise, 20, slRise + 4, 4);
+                    sk.stroke(6, 182, 212); sk.strokeWeight(1); sk.noFill(); sk.rect(W - 40, H - 130, 20, 80, 4);
+                    sk.fill(255); sk.noStroke(); sk.textSize(8); sk.text('Sea\nLevel', W - 42, H - 140);
+                };
+            });
+        }
+        function ikimUpdate() {
+            let co2 = parseFloat(document.getElementById('co2sl').value);
+            let forest = parseFloat(document.getElementById('forestsl').value) / 100;
+            let year = parseInt(document.getElementById('yearSel').value);
+            let net = co2 * (1 - forest * .3);
+            let mult = year === 2050 ? 1 : 2.2;
+            let dT = (net / 37) * mult * 1.5;
+            let sl = dT * 15;
+            document.getElementById('clim-dt').textContent = '+' + dT.toFixed(1) + '°C';
+            document.getElementById('clim-sl').textContent = sl.toFixed(0) + ' cm';
+            let riskEl = document.getElementById('clim-risk');
+            if (dT < 1.5) { riskEl.textContent = 'RENDAH'; riskEl.style.color = '#22c55e'; }
+            else if (dT < 2.5) { riskEl.textContent = 'SEDANG'; riskEl.style.color = '#f59e0b'; }
+            else if (dT < 4) { riskEl.textContent = 'TINGGI'; riskEl.style.color = '#f97316'; }
+            else { riskEl.textContent = 'KRITIS ⚠'; riskEl.style.color = '#ef4444'; }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => { initKalor(); });
+        // ── FULLSCREEN ──
+        function toggleFS() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => { });
+            else document.exitFullscreen();
+        }
+        document.addEventListener('fullscreenchange', () => {
+            const isFS = !!document.fullscreenElement;
+            const btn = document.getElementById('fsBtn');
+            if (btn) { btn.textContent = isFS ? '✕' : '⛶'; btn.title = isFS ? 'Keluar Layar Penuh' : 'Layar Penuh'; }
+        });
+    </script>
+</body>
+
+</html>

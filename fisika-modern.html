@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Fisika Modern – SimFisika</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #050a1a;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, .4);
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        header a:hover {
+            color: #ec4899;
+        }
+
+        header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ec4899, #8b5cf6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, .2);
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            color: #64748b;
+            background: transparent;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            background: rgba(236, 72, 153, .15);
+            border-color: #ec4899;
+            color: #ec4899;
+        }
+
+        .lab {
+            display: none;
+            padding: 24px;
+            gap: 20px;
+            flex-direction: column;
+        }
+
+        .lab.active {
+            display: flex;
+        }
+
+        .sim-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 20px;
+            align-items: stretch;
+            height: calc(100vh - 140px);
+            min-height: 500px;
+        }
+
+        @media(max-width:768px) {
+            .sim-wrapper {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        .canvas-box {
+            background: #050a1a;
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            color: #ec4899;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-size: 11px;
+            color: #94a3b8;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: #ec4899;
+            cursor: pointer;
+        }
+
+        .val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: #e2e8f0;
+            float: right;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+        }
+
+        .data-row span:first-child {
+            color: #64748b;
+        }
+
+        .data-row span:last-child {
+            font-family: 'Orbitron', sans-serif;
+            color: #ec4899;
+            font-size: 11px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            transition: all .2s;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .btn-p {
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            color: #fff;
+        }
+
+        .btn-s {
+            background: rgba(255, 255, 255, .08);
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, .12);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .info-box {
+            background: rgba(236, 72, 153, .05);
+            border: 1px solid rgba(236, 72, 153, .2);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #94a3b8;
+        }
+
+        .info-box strong {
+            color: #ec4899;
+        }
+
+        .formula {
+            background: rgba(139, 92, 246, .1);
+            border: 1px solid rgba(139, 92, 246, .3);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: #c4b5fd;
+            margin: 6px 0;
+        }
+
+        /* Fullscreen */
+        #fsBtn {
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .15);
+            color: #94a3b8;
+            border-radius: 8px;
+            padding: 5px 12px;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            transition: all .2s;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        #fsBtn:hover {
+            background: rgba(255, 255, 255, .18);
+            color: #e2e8f0;
+        }
+
+        :fullscreen #fsBtn,
+        :-webkit-full-screen #fsBtn {
+            color: #00d4ff;
+            border-color: #00d4ff;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <a href="index.html">← MENU</a>
+        <h1>⚛ FISIKA MODERN</h1>
+        <span style="color:#334155;font-size:11px;">LAB INTERAKTIF FISIKA</span>
+        <button id="fsBtn" onclick="toggleFS()" title="Layar Penuh">⛶</button>
+    </header>
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('relativitas')">Relativitas</div>
+        <div class="tab" onclick="switchTab('fotolistrik')">Efek Fotolistrik</div>
+        <div class="tab" onclick="switchTab('atom')">Model Atom Bohr</div>
+        <div class="tab" onclick="switchTab('nuklir')">Peluruhan Nuklir</div>
+    </div>
+
+    <!-- RELATIVITAS -->
+    <div id="tab-relativitas" class="lab active">
+        <div class="sim-wrapper">
+            <div class="canvas-box" id="box-rel"></div>
+            <div class="panel">
+                <div class="card">
+                    <h3>EFEK RELATIVISTIK</h3>
+                    <label>Kecepatan v/c <span class="val" id="vcval">0.5</span></label>
+                    <input type="range" id="vcSl" min="0.01" max="0.9999" value="0.5" step="0.01" />
+                    <label style="margin-top:8px">Panjang Benda L₀ (m) <span class="val" id="l0val">100</span></label>
+                    <input type="range" id="l0Sl" min="10" max="200" value="100" step="10" />
+                    <label style="margin-top:8px">Waktu t₀ (s) <span class="val" id="t0val">1</span></label>
+                    <input type="range" id="t0Sl" min="0.1" max="10" value="1" step="0.1" />
+                    <div class="btn-row"><button class="btn btn-p" onclick="relUpdate()">↻ HITUNG</button></div>
+                </div>
+                <div class="card">
+                    <h3>EFEK</h3>
+                    <div class="data-row"><span>Faktor Lorentz (γ)</span><span id="rel-gamma">1.15</span></div>
+                    <div class="data-row"><span>Pemendekan L</span><span id="rel-l">86.6 m</span></div>
+                    <div class="data-row"><span>Dilatasi Waktu t</span><span id="rel-t">1.15 s</span></div>
+                    <div class="data-row"><span>Massa Relativistik</span><span id="rel-m">1.15 m₀</span></div>
+                </div>
+                <div class="card">
+                    <h3>RUMUS</h3>
+                    <div class="formula">γ = 1/√(1−v²/c²)</div>
+                    <div class="formula">L = L₀/γ</div>
+                    <div class="formula">t = γ·t₀</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOTOLISTRIK -->
+    <div id="tab-fotolistrik" class="lab">
+        <div class="sim-wrapper">
+            <div class="canvas-box" id="box-foto"></div>
+            <div class="panel">
+                <div class="card">
+                    <h3>CAHAYA DATANG</h3>
+                    <label>Frekuensi (×10¹⁴ Hz) <span class="val" id="fhzval">6</span></label>
+                    <input type="range" id="fhzSl" min="3" max="12" value="6" step="0.5" />
+                    <label style="margin-top:8px">Material Logam</label>
+                    <select id="metalSel"
+                        style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:6px;font-size:12px;"
+                        onchange="fotoUpdate()">
+                        <option value="4.3">Aluminium (φ=4.3 eV)</option>
+                        <option value="4.5">Besi (φ=4.5 eV)</option>
+                        <option value="4.7">Perak (φ=4.7 eV)</option>
+                        <option value="5.1">Emas (φ=5.1 eV)</option>
+                        <option value="2.3">Kalium (φ=2.3 eV)</option>
+                    </select>
+                    <div class="btn-row"><button class="btn btn-p" onclick="fotoUpdate()">↻ HITUNG</button></div>
+                </div>
+                <div class="card">
+                    <h3>HASIL</h3>
+                    <div class="data-row"><span>Energi Foton (eV)</span><span id="f-ef">2.48 eV</span></div>
+                    <div class="data-row"><span>Fungsi Kerja (φ)</span><span id="f-phi">4.3 eV</span></div>
+                    <div class="data-row"><span>Eₖ Maks (eV)</span><span id="f-ek">0.00 eV</span></div>
+                    <div class="data-row"><span>Status</span><span id="f-status" style="color:#ef4444">TIDAK TERJADI
+                            ✗</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>RUMUS</h3>
+                    <div class="formula">E = h·f</div>
+                    <div class="formula">Eₖ = hf − φ</div>
+                    <div class="info-box">h = 6.626×10⁻³⁴ J·s<br /><strong>Einstein (1905):</strong> Cahaya terdiri dari
+                        kuanta energi (foton). Efek fotolistrik hanya bergantung pada frekuensi, bukan intensitas!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ATOM BOHR -->
+    <div id="tab-atom" class="lab">
+        <div class="sim-wrapper">
+            <div class="canvas-box" id="box-atom"></div>
+            <div class="panel">
+                <div class="card">
+                    <h3>TRANSISI ELEKTRON</h3>
+                    <label>Dari Kulit (n awal)</label>
+                    <select id="nFrom"
+                        style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:6px;font-size:12px;"
+                        onchange="atomUpdate()">
+                        <option value="2">n=2</option>
+                        <option value="3">n=3</option>
+                        <option value="4">n=4</option>
+                        <option value="5">n=5</option>
+                    </select>
+                    <label style="margin-top:8px">Ke Kulit (n akhir)</label>
+                    <select id="nTo"
+                        style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:6px;font-size:12px;"
+                        onchange="atomUpdate()">
+                        <option value="1">n=1 (Lyman - UV)</option>
+                        <option value="2" selected>n=2 (Balmer - Vis)</option>
+                        <option value="3">n=3 (Paschen - IR)</option>
+                    </select>
+                    <div class="btn-row"><button class="btn btn-p" onclick="atomUpdate()">↻ HITUNG</button></div>
+                </div>
+                <div class="card">
+                    <h3>FOTON DIPANCARKAN</h3>
+                    <div class="data-row"><span>ΔE (eV)</span><span id="at-de">0</span></div>
+                    <div class="data-row"><span>λ (nm)</span><span id="at-lam">0</span></div>
+                    <div class="data-row"><span>Deret</span><span id="at-series">Balmer</span></div>
+                    <div class="data-row"><span>Jenis Radiasi</span><span id="at-type">Cahaya Tampak</span></div>
+                </div>
+                <div class="card">
+                    <h3>RUMUS</h3>
+                    <div class="formula">Eₙ = −13.6 / n² eV</div>
+                    <div class="formula">1/λ = R(1/n₁²−1/n₂²)</div>
+                    <div class="info-box">R = 1.097×10⁷ m⁻¹ (Konstanta Rydberg)<br /><strong>Model Bohr:</strong>
+                        Elektron hanya dapat berada di kulit stasioner tertentu.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NUKLIR -->
+    <div id="tab-nuklir" class="lab">
+        <div class="sim-wrapper">
+            <div class="canvas-box" id="box-nuklir"></div>
+            <div class="panel">
+                <div class="card">
+                    <h3>PELURUHAN RADIOAKTIF</h3>
+                    <label>Isotop</label>
+                    <select id="isotopeSel"
+                        style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:6px;font-size:12px;"
+                        onchange="nuklirUpdate()">
+                        <option value="5730,C-14">C-14 (t½=5730 th)</option>
+                        <option value="1.25e9,K-40">K-40 (t½=1.25×10⁹ th)</option>
+                        <option value="1600,Ra-226">Ra-226 (t½=1600 th)</option>
+                        <option value="14.3,P-32">P-32 (t½=14.3 hr)</option>
+                    </select>
+                    <label style="margin-top:8px">N₀ (atom) <span class="val" id="n0val">1000</span></label>
+                    <input type="range" id="n0Sl" min="100" max="2000" value="1000" step="100" />
+                    <label style="margin-top:8px">Waktu (×t½) <span class="val" id="thalval">2</span></label>
+                    <input type="range" id="thalSl" min="0" max="10" value="2" step="0.5" />
+                    <div class="btn-row"><button class="btn btn-p" onclick="nuklirUpdate()">↻ HITUNG</button></div>
+                </div>
+                <div class="card">
+                    <h3>HASIL</h3>
+                    <div class="data-row"><span>N(t) sisa</span><span id="nuk-n">250</span></div>
+                    <div class="data-row"><span>Persentase (%)</span><span id="nuk-pct">25%</span></div>
+                    <div class="data-row"><span>Aktivitas</span><span id="nuk-act">0</span></div>
+                </div>
+                <div class="card">
+                    <h3>RUMUS</h3>
+                    <div class="formula">N(t) = N₀·(½)^(t/t½)</div>
+                    <div class="formula">N(t) = N₀·e^(−λt)</div>
+                    <div class="info-box">Peluruhan radioaktif bersifat acak tetapi statistiknya dapat diprediksi secara
+                        tepat. Digunakan dalam penanggalan karbon dan kedokteran nuklir.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(id) {
+            document.querySelectorAll('.lab').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + id).classList.add('active');
+            event.target.classList.add('active');
+            if (id === 'relativitas') initRel();
+            if (id === 'fotolistrik') initFoto();
+            if (id === 'atom') initAtom();
+            if (id === 'nuklir') initNuklir();
+        }
+
+        // ── RELATIVITAS ──
+        let skRel = null, relVc = 0.5, relT = 0;
+        function initRel() {
+            if (skRel) skRel.remove();
+            ['vcSl', 'l0Sl', 't0Sl'].forEach(id => {
+                let dp = id.replace('Sl', 'val');
+                document.getElementById(id).addEventListener('input', e => { document.getElementById(dp).textContent = parseFloat(e.target.value).toFixed(id === 'vcSl' ? 2 : 1); relUpdate(); });
+            });
+            relUpdate();
+            skRel = new p5(sk => {
+                sk.setup = () => { let c = sk.createCanvas(540, 360); c.parent('box-rel'); };
+                sk.draw = () => {
+                    sk.background(5, 10, 26);
+                    const W = sk.width, H = sk.height;
+                    relT += sk.deltaTime / 1000;
+                    let vc = parseFloat(document.getElementById('vcSl').value);
+                    let L0 = parseFloat(document.getElementById('l0Sl').value);
+                    let gamma = 1 / Math.sqrt(1 - vc * vc);
+                    let L = L0 / gamma;
+                    // Starfield
+                    sk.noStroke();
+                    for (let i = 0; i < 100; i++) {
+                        let x = (i * 137 + relT * vc * 200) % W;
+                        let y = i * 7 % H;
+                        let trail = vc * 15;
+                        sk.fill(200, 200, 255, 120); sk.ellipse(x, y, 1, 1);
+                        sk.fill(200, 200, 255, 40); sk.rect(x, y, trail, 1);
+                    }
+                    // Rest frame ship (top)
+                    let xRest = W / 2;
+                    sk.fill(0, 212, 255, 40); sk.stroke(0, 212, 255); sk.strokeWeight(2);
+                    sk.rect(xRest - L0 * 0.6, 60, L0 * 1.2, 30, 6);
+                    sk.fill(0, 212, 255); sk.noStroke(); sk.textSize(9); sk.textFont('Orbitron');
+                    sk.text('L₀=' + L0 + 'm (DIAM)', xRest - 30, 50);
+                    sk.stroke(255, 200, 0, 100); sk.strokeWeight(1); sk.setLineDash && sk.setLineDash([5, 5]);
+                    // Moving frame ship (bottom)  
+                    let shipX = (relT * vc * 150) % (W + L * 1.2 + 100) - L * 0.6;
+                    sk.fill(236, 72, 153, 40); sk.stroke(236, 72, 153); sk.strokeWeight(2); sk.noFill();
+                    sk.fill(236, 72, 153, 40); sk.rect(shipX, 200, L * 1.2, 30, 6);
+                    sk.fill(236, 72, 153); sk.noStroke(); sk.textSize(9);
+                    sk.text('L=' + L.toFixed(1) + 'm (v=' + vc + 'c)', shipX, 192);
+                    // Thrust flames
+                    for (let f = 0; f < 5; f++) {
+                        let fx = shipX - f * 4, fy = 215 + sk.random(-5, 5);
+                        sk.fill(245, 158, 11, Math.max(0, 150 - f * 30)); sk.noStroke();
+                        sk.ellipse(fx, fy, 8 - f, 8 - f);
+                    }
+                    // γ display
+                    sk.fill(0, 0, 0, 180); sk.rect(8, 8, 200, 110, 8);
+                    sk.fill(236, 72, 153); sk.textSize(10); sk.textFont('Orbitron');
+                    sk.text('γ = ' + gamma.toFixed(3), 16, 26);
+                    sk.fill(0, 212, 255);
+                    sk.text('L = ' + L.toFixed(1) + ' m', 16, 44);
+                    let t0 = parseFloat(document.getElementById('t0Sl').value);
+                    sk.fill(139, 92, 246);
+                    sk.text('t = ' + (gamma * t0).toFixed(2) + ' s', 16, 62);
+                    sk.fill(245, 158, 11);
+                    sk.text('m = ' + gamma.toFixed(3) + ' m₀', 16, 80);
+                    // Speed bar
+                    sk.fill(30); sk.rect(16, 90, 160, 10, 4);
+                    sk.fill(236, 72, 153); sk.rect(16, 90, 160 * vc, 10, 4);
+                    sk.fill(255); sk.textSize(8); sk.text('v/c = ' + (vc * 100).toFixed(0) + '%', 16, 118);
+                };
+            });
+        }
+        if (!p5.prototype.setLineDash) p5.prototype.setLineDash = function (l) { this.drawingContext.setLineDash(l); };
+        function relUpdate() {
+            let vc = parseFloat(document.getElementById('vcSl').value);
+            let L0 = parseFloat(document.getElementById('l0Sl').value);
+            let t0 = parseFloat(document.getElementById('t0Sl').value);
+            let gamma = 1 / Math.sqrt(1 - vc * vc);
+            document.getElementById('rel-gamma').textContent = gamma.toFixed(4);
+            document.getElementById('rel-l').textContent = (L0 / gamma).toFixed(2) + ' m';
+            document.getElementById('rel-t').textContent = (gamma * t0).toFixed(4) + ' s';
+            document.getElementById('rel-m').textContent = gamma.toFixed(4) + ' m₀';
+        }
+
+        // ── FOTOLISTRIK ──
+        let skFoto = null, photoElectrons = [];
+        function initFoto() {
+            if (skFoto) skFoto.remove();
+            const fhzEl = document.getElementById('fhzSl');
+            fhzEl.oninput = e => { document.getElementById('fhzval').textContent = e.target.value; fotoUpdate(); };
+            fotoUpdate();
+            photoElectrons = [];
+            skFoto = new p5(sk => {
+                sk.setup = () => { let c = sk.createCanvas(540, 360); c.parent('box-foto'); };
+                sk.draw = () => {
+                    sk.background(5, 10, 26);
+                    const W = sk.width, H = sk.height;
+                    let f = parseFloat(document.getElementById('fhzSl').value) * 1e14;
+                    let phi = parseFloat(document.getElementById('metalSel').value) * 1.6e-19;
+                    let h = 6.626e-34;
+                    let Ephoton = h * f;
+                    let Ek = Ephoton - phi;
+                    let ejected = Ek > 0;
+                    // Metal plate
+                    let plateCols = ['#4a7', '#678', '#aaa', '#da4', '#cb8'];
+                    let pIdx = ['4.3', '4.5', '4.7', '5.1', '2.3'].indexOf(document.getElementById('metalSel').value);
+                    sk.fill(plateCols[pIdx] || '#678'); sk.stroke(200); sk.strokeWeight(1);
+                    sk.rect(W / 2 - 80, H - 80, 160, 60, 4);
+                    sk.fill(255); sk.noStroke(); sk.textSize(9); sk.textFont('Orbitron');
+                    sk.text(document.getElementById('metalSel').options[document.getElementById('metalSel').selectedIndex].text.split(' ')[0], W / 2 - 25, H - 40);
+                    // Incoming photons
+                    let lamNm = 3e8 / f * 1e9;
+                    let hue = Math.max(0, Math.min(270, 270 - (lamNm - 380) / (780 - 380) * 270));
+                    for (let i = 0; i < 5; i++) {
+                        let px = 80 + i * 80, pyStart = 30;
+                        let angle = Math.PI / 4;
+                        sk.stroke(`hsl(${hue},90%,70%)`); sk.strokeWeight(2);
+                        for (let j = 0; j < 3; j++) {
+                            let s = sk.frameCount * .05 + j * 2;
+                            let sx = px + Math.cos(angle + Math.PI) * 20 * Math.sin(s);
+                            let sy = H - 80 + Math.sin(angle + Math.PI) * 20 * Math.sin(s);
+                            sk.line(px, pyStart, sx, sy);
+                        }
+                        sk.stroke(`hsl(${hue},90%,70%)`); sk.strokeWeight(1.5);
+                        sk.line(px, pyStart, px, H - 82);
+                        sk.fill(`hsl(${hue},90%,70%)`); sk.noStroke(); sk.ellipse(px + (sk.frameCount * 2 % 1) * (H - 82 - pyStart) * 0, pyStart + (sk.frameCount * 2 % 80) * ((H - 82 - pyStart) / 80), 6, 6);
+                        // photon wave indicator
+                        let py2 = pyStart + (sk.frameCount * 3) % (H - 80 - pyStart);
+                        sk.fill(`hsl(${hue},90%,80%)`); sk.noStroke(); sk.ellipse(px, py2, 8, 8);
+                    }
+                    // Electrons emitted
+                    if (ejected) {
+                        if (sk.frameCount % 8 === 0) photoElectrons.push({ x: W / 2 + (Math.random() - .5) * 80, y: H - 82, vx: (Math.random() - .5) * 3, vy: -2 - Math.random() * 2 });
+                        for (let e of photoElectrons) {
+                            e.x += e.vx; e.y += e.vy; e.vy += 0.05;
+                            sk.fill(0, 212, 255, 200); sk.noStroke(); sk.ellipse(e.x, e.y, 7, 7);
+                            sk.fill(255); sk.textSize(7); sk.text('e⁻', e.x + 4, e.y - 2);
+                        }
+                        photoElectrons = photoElectrons.filter(e => e.y < H + 20);
+                    } else {
+                        sk.fill(239, 68, 68); sk.noStroke(); sk.textSize(11); sk.textFont('Orbitron');
+                        sk.text('TIDAK ADA ELEKTRON! (f < f₀)', W / 2 - 120, H / 2);
+                    }
+                    // HUD
+                    sk.fill(0, 0, 0, 160); sk.rect(8, 8, 200, 70, 8);
+                    sk.fill(`hsl(${hue},80%,70%)`); sk.textSize(9); sk.textFont('Orbitron');
+                    sk.text('λ = ' + lamNm.toFixed(0) + ' nm', 16, 24);
+                    sk.fill(245, 158, 11); sk.text('E = ' + (Ephoton / 1.6e-19).toFixed(2) + ' eV', 16, 40);
+                    sk.fill(ejected ? sk.color(34, 197, 94) : sk.color(239, 68, 68));
+                    sk.text(ejected ? 'Eₖ = ' + (Ek / 1.6e-19).toFixed(2) + ' eV' : 'f < f₀ : TIDAK TERJADI', 16, 56);
+                };
+            });
+        }
+        function fotoUpdate() {
+            let f = parseFloat(document.getElementById('fhzSl').value) * 1e14;
+            let phi = parseFloat(document.getElementById('metalSel').value);
+            let h = 6.626e-34; let eV = 1.6e-19;
+            let Ef = h * f / eV;
+            let Ek = Ef - phi;
+            document.getElementById('f-ef').textContent = Ef.toFixed(2) + ' eV';
+            document.getElementById('f-phi').textContent = phi + ' eV';
+            document.getElementById('f-ek').textContent = Math.max(0, Ek).toFixed(2) + ' eV';
+            let st = document.getElementById('f-status');
+            if (Ek > 0) { st.textContent = 'TERJADI ✓'; st.style.color = '#22c55e'; }
+            else { st.textContent = 'TIDAK TERJADI ✗'; st.style.color = '#ef4444'; }
+        }
+
+        // ── BOHR ATOM ──
+        let skAtom = null, atomAngle = 0;
+        function initAtom() {
+            if (skAtom) skAtom.remove();
+            atomUpdate();
+            skAtom = new p5(sk => {
+                sk.setup = () => { let c = sk.createCanvas(540, 380); c.parent('box-atom'); };
+                sk.draw = () => {
+                    sk.background(5, 10, 26);
+                    const W = sk.width, H = sk.height;
+                    let nFrom = parseInt(document.getElementById('nFrom').value);
+                    let nTo = parseInt(document.getElementById('nTo').value);
+                    let cx = W / 2, cy = H / 2;
+                    // Draw orbits
+                    for (let n = 1; n <= 5; n++) {
+                        let r = n * 40;
+                        sk.fill(0); sk.stroke(30, 50, 80); sk.strokeWeight(1); sk.ellipse(cx, cy, r * 2, r * 2);
+                        sk.fill(100); sk.noStroke(); sk.textSize(8); sk.textFont('Orbitron');
+                        sk.text('n=' + n, cx + r + 3, cy);
+                        // Energy label
+                        let En = -13.6 / (n * n);
+                        sk.fill(80); sk.textSize(7); sk.text(En.toFixed(2) + 'eV', cx - r - 35, cy - 2);
+                    }
+                    // Nucleus
+                    sk.fill(239, 68, 68); sk.noStroke(); sk.ellipse(cx, cy, 18, 18);
+                    sk.fill(255); sk.textSize(8); sk.text('H', cx - 4, cy + 3);
+                    // Electron orbit (from level)
+                    atomAngle += 0.02 * nFrom;
+                    let r = nFrom * 40;
+                    let ex = cx + r * Math.cos(atomAngle), ey = cy + r * Math.sin(atomAngle);
+                    sk.fill(0, 212, 255); sk.noStroke(); sk.ellipse(ex, ey, 12, 12);
+                    sk.fill(255); sk.textSize(7); sk.text('e⁻', ex + 5, ey - 3);
+                    // Transition photon (if animating)
+                    if (nFrom > nTo) {
+                        let dE = 13.6 * (1 / (nTo * nTo) - 1 / (nFrom * nFrom));
+                        let lam = 1240 / dE;
+                        let hue = Math.max(0, Math.min(270, 270 - (lam - 380) / (780 - 380) * 270));
+                        // Emitted photon
+                        let pt = (sk.frameCount * .02) % 1;
+                        let psx = ex + (cx - ex) * pt / 2, psy = ey + (cy - ey) * pt / 2;
+                        for (let i = 0; i < 3; i++) {
+                            sk.fill(`hsl(${hue},90%,70%)`); sk.noStroke();
+                            sk.ellipse(cx + Math.cos(sk.frameCount * .05 + i * 2) * 60 * (1 - pt) * nTo / nFrom,
+                                cy + Math.sin(sk.frameCount * .05 + i * 2) * 60 * (1 - pt) * nTo / nFrom, 8, 8);
+                        }
+                        sk.fill(`hsl(${hue},80%,60%)`); sk.noStroke(); sk.textSize(9); sk.textFont('Orbitron');
+                        sk.text('λ=' + lam.toFixed(0) + 'nm', cx - 30, cy - nFrom * 40 - 15);
+                    }
+                    // Energy diagram (right)
+                    let dX = W - 120;
+                    sk.fill(0, 0, 0, 120); sk.rect(dX - 10, 20, 100, H - 40, 6);
+                    for (let n = 1; n <= 5; n++) {
+                        let En = -13.6 / (n * n);
+                        let y = sk.map(En, -14, 0, H - 50, 30);
+                        let col = n === nFrom ? '#00d4ff' : n === nTo ? '#ec4899' : '#334155';
+                        sk.stroke(col); sk.strokeWeight(n === nFrom || n === nTo ? 2 : 1);
+                        sk.line(dX, y, dX + 80, y);
+                        sk.fill(col); sk.noStroke(); sk.textSize(8);
+                        sk.text('n=' + n + ' (' + En.toFixed(1) + 'eV)', dX + 2, y - 2);
+                    }
+                    if (nFrom > nTo) {
+                        let y1 = sk.map(-13.6 / (nFrom * nFrom), -14, 0, H - 50, 30);
+                        let y2 = sk.map(-13.6 / (nTo * nTo), -14, 0, H - 50, 30);
+                        sk.stroke(236, 72, 153); sk.strokeWeight(2);
+                        sk.line(dX + 40, y1, dX + 40, y2);
+                        sk.fill(236, 72, 153); sk.triangle(dX + 35, y2, dX + 45, y2, dX + 40, y2 + 8);
+                    }
+                };
+            });
+        }
+        function atomUpdate() {
+            let nFrom = parseInt(document.getElementById('nFrom').value);
+            let nTo = parseInt(document.getElementById('nTo').value);
+            if (nFrom <= nTo) { nTo = Math.max(1, nFrom - 1); document.getElementById('nTo').value = nTo; }
+            let dE = 13.6 * (1 / (nTo * nTo) - 1 / (nFrom * nFrom));
+            let lam = 1240 / dE;
+            document.getElementById('at-de').textContent = dE.toFixed(2) + ' eV';
+            document.getElementById('at-lam').textContent = lam.toFixed(1) + ' nm';
+            let series = ['Lyman', 'Balmer', 'Paschen'];
+            document.getElementById('at-series').textContent = series[nTo - 1] || 'Brackett+';
+            let type = lam < 380 ? 'Ultraviolet' : lam > 780 ? 'Inframerah' : 'Cahaya Tampak';
+            document.getElementById('at-type').textContent = type;
+        }
+
+        // ── NUKLIR ──
+        let skNuklir = null, nucleons = [];
+        function initNuklir() {
+            if (skNuklir) skNuklir.remove();
+            ['n0Sl', 'thalSl'].forEach(id => {
+                let dp = id.replace('Sl', 'val');
+                document.getElementById(id).addEventListener('input', e => { document.getElementById(dp).textContent = parseFloat(e.target.value).toFixed(1); nuklirUpdate(); });
+            });
+            nuklirUpdate();
+            skNuklir = new p5(sk => {
+                sk.setup = () => { let c = sk.createCanvas(540, 360); c.parent('box-nuklir'); };
+                sk.draw = () => {
+                    sk.background(5, 10, 26);
+                    const W = sk.width, H = sk.height;
+                    let N0 = parseInt(document.getElementById('n0Sl').value);
+                    let tHalf = parseFloat(document.getElementById('thalSl').value);
+                    let Nt = N0 * Math.pow(0.5, tHalf);
+                    let pct = Nt / N0;
+                    // Decay graph
+                    let gx = 30, gy = 30, gw = W - 80, gh = H - 120;
+                    sk.stroke(30, 50, 80); sk.strokeWeight(1);
+                    for (let i = 0; i <= 5; i++) sk.line(gx + i * gw / 5, gy, gx + i * gw / 5, gy + gh);
+                    for (let i = 0; i <= 4; i++) sk.line(gx, gy + i * gh / 4, gx + gw, gy + i * gh / 4);
+                    sk.stroke(236, 72, 153); sk.strokeWeight(2.5); sk.noFill(); sk.beginShape();
+                    for (let t = 0; t <= 10; t += 0.1) {
+                        let x = gx + t / 10 * gw;
+                        let y = gy + gh - (N0 * Math.pow(0.5, t) / N0) * gh;
+                        sk.vertex(x, y);
+                    }
+                    sk.endShape();
+                    // Current position
+                    let curX = gx + tHalf / 10 * gw;
+                    let curY = gy + gh - pct * gh;
+                    sk.fill(0, 212, 255); sk.noStroke(); sk.ellipse(curX, curY, 14, 14);
+                    sk.stroke(0, 212, 255, 100); sk.strokeWeight(1);
+                    sk.line(curX, gy + gh, curX, curY);
+                    sk.line(gx, curY, curX, curY);
+                    // Labels
+                    sk.fill(255); sk.noStroke(); sk.textSize(9); sk.textFont('Orbitron');
+                    sk.text('N₀=' + N0, gx + 4, gy + gh - 2);
+                    sk.text(tHalf.toFixed(1) + '·t½', curX - 10, gy + gh + 14);
+                    sk.fill(0, 212, 255); sk.textSize(10);
+                    sk.text('N(t)=' + Nt.toFixed(0), curX + 8, curY - 4);
+                    // Axis labels
+                    sk.fill(100); sk.textSize(8); sk.textFont('Inter');
+                    for (let i = 0; i <= 5; i++) sk.text(i * 2 + 't½', gx + i * gw / 5 - 5, gy + gh + 26);
+                    for (let i = 0; i <= 4; i++) sk.text(sk.nfc(N0 * (1 - i / 4), 0), 2, gy + i * gh / 4 + 3);
+                    // Particle visualization
+                    let rows = 8;
+                    for (let i = 0; i < N0 / 10; i++) {
+                        let col = i < Nt / 10 ? sk.color(34, 197, 94, 200) : sk.color(239, 68, 68, 80);
+                        sk.fill(col); sk.noStroke();
+                        sk.ellipse(gx + gw + 30 + (i % rows) * 12, gy + Math.floor(i / rows) * 12 + 10, 9, 9);
+                    }
+                };
+            });
+        }
+        function nuklirUpdate() {
+            let N0 = parseInt(document.getElementById('n0Sl').value);
+            let tHalf = parseFloat(document.getElementById('thalSl').value);
+            let Nt = N0 * Math.pow(0.5, tHalf);
+            let pct = (Nt / N0 * 100);
+            document.getElementById('nuk-n').textContent = Nt.toFixed(0);
+            document.getElementById('nuk-pct').textContent = pct.toFixed(1) + '%';
+            let iso = document.getElementById('isotopeSel').value.split(',');
+            let t12 = parseFloat(iso[0]), lam = Math.log(2) / t12;
+            document.getElementById('nuk-act').textContent = (lam * Nt).toFixed(2) + ' /t½';
+        }
+
+        window.addEventListener('DOMContentLoaded', () => { initRel(); });
+        // ── FULLSCREEN ──
+        function toggleFS() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => { });
+            else document.exitFullscreen();
+        }
+        document.addEventListener('fullscreenchange', () => {
+            const isFS = !!document.fullscreenElement;
+            const btn = document.getElementById('fsBtn');
+            if (btn) { btn.textContent = isFS ? '✕' : '⛶'; btn.title = isFS ? 'Keluar Layar Penuh' : 'Layar Penuh'; }
+        });
+    </script>
+</body>
+
+</html>
